@@ -10,3 +10,13 @@ Team Copper - Spring 2026
   - qelson - Quin Elson - qelso001@odu.edu
   - stodd009 - Savannah Todd - stodd009@odu.edu
   - tfull013 - Tommy Fuller - tfull013@odu.edu
+
+  ## To installations required for invoice_pdf_seeder
+  - in .venv (virtual environment)
+  - pip install Faker
+  - pip install reportlab (pdf gen.)
+
+  ## To run invoice_pdf_seeder
+  - python seeders\invoice_pdf_seeder.py
+  
+  
