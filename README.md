@@ -23,5 +23,5 @@ If still not showing, run the following to force install it:
 
 ## How to run seeder:
 There are two options: 
-1. For PDFS: python seeders\invoice_pdf_seeder.py
+1. For PDFs: python seeders\invoice_pdf_seeder.py
 2. For CSVs: python -m seeders.invoice_csv_seeder
