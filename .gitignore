@@ -31,4 +31,6 @@ __pycache__/
 # Database files
 *.db
 
+# Dummy data files
+data/*
 
