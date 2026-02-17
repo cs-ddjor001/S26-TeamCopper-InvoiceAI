@@ -12,7 +12,7 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db.init_app(app)
 
-from models.invoice import Invoice
+import models
 
 
 @app.route("/")
