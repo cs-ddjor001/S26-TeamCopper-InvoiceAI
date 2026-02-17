@@ -14,9 +14,15 @@ db.init_app(app)
 
 from models.invoice import Invoice
 
+
 @app.route("/")
 def home():
     return render_template("index.html")
+
+
+@app.route("/dashboard")
+def dashboard():
+    return render_template("dashboard.html")
 
 
 if __name__ == "__main__":
