@@ -2,6 +2,8 @@ from extensions import db
 
 
 class Users(db.Model):
+    __tablename__ = "users"
+
     username = db.Column(db.String(20), primary_key=True)
     email = db.Column(db.String(30), nullable=False)
     display_name = db.Column(db.String(30))
