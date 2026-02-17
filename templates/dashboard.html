@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="w-full flex justify-center">
+  <div class="w-full max-w-6xl px-6 py-6 space-y-6">
+
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="text-2xl font-semibold text-gray-900">Automated Invoice Reception</h2>
+        <p class="text-gray-600">Manage incoming invoices and track processing status</p>
+      </div>
+
+      <a href="/" class="inline-flex items-center rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow hover:bg-gray-50">
+        Back to Home
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="bg-white rounded-xl shadow p-6">
+        <p class="text-sm text-gray-500">Invoices Received Today</p>
+        <p class="text-3xl font-semibold text-gray-900 mt-2">—</p>
+      </div>
+
+      <div class="bg-white rounded-xl shadow p-6">
+        <p class="text-sm text-gray-500">Processed</p>
+        <p class="text-3xl font-semibold text-gray-900 mt-2">—</p>
+      </div>
+
+      <div class="bg-white rounded-xl shadow p-6">
+        <p class="text-sm text-gray-500">Failed Extraction</p>
+        <p class="text-3xl font-semibold text-gray-900 mt-2">—</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <div class="lg:col-span-1">
+        <div class="bg-white rounded-xl shadow p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Invoice Inbox</h3>
+
+          <div class="rounded-lg border border-gray-200 p-8 text-center text-gray-500">
+            No invoices loaded yet.
+          </div>
+
+          <button class="mt-6 w-full bg-indigo-600 text-white py-2.5 rounded-lg hover:bg-indigo-700 transition">
+            Upload Invoice
+          </button>
+        </div>
+      </div>
+
+      <div class="lg:col-span-2">
+        <div class="bg-white rounded-xl shadow p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">Processing Queue</h3>
+              <p class="text-sm text-gray-600">Invoices ready for review and matching</p>
+            </div>
+
+            <button class="bg-gray-900 text-white px-4 py-2.5 rounded-lg hover:bg-black transition">
+              Run Matching
+            </button>
+          </div>
+
+          <div class="rounded-lg border border-gray-200 p-10 text-center text-gray-500">
+            No invoices available for review.
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
