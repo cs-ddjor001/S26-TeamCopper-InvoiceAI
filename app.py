@@ -24,6 +24,17 @@ def home():
 def dashboard():
     return render_template("dashboard.html")
 
+@app.route("/suppliers")
+def suppliers():
+    return render_template("suppliers.html")
+
+@app.route("/review-match")
+def review_match():
+    return render_template("review-match.html")
+
+@app.route("/analytics")
+def analytics():
+    return render_template("analytics.html")
 
 if __name__ == "__main__":
     with app.app_context():
