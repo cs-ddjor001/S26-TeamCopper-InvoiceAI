@@ -6,88 +6,223 @@
 
 <div class="bg-gray-50">
   <div class="max-w-5xl mx-auto px-6 py-8">
-    <div class="flex items-start justify-between">
       <div>
         <h1 class="text-2xl font-semibold text-gray-900">Invoice Processing System</h1>
         <p class="text-gray-600 mt-1">Upload, extract, and match invoices with purchase orders</p>
+        
+        <nav class="mt-5 w-full ">
+          <div class="max-w-5xl mx-auto bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 mt-10">
+              <div class="flex border-b bg-gray-50">
 
-        <nav class="mt-5 inline-flex items-center gap-2">
-          <a href="/dashboard"
-             class="px-4 py-2 text-sm font-medium rounded-full bg-white text-gray-900 shadow-sm ring-1 ring-gray-200 hover:bg-gray-50 no-underline decoration-transparent border-0 outline-none appearance-none">
-            Automated Reception
-          </a>
+                <button class="tab-link px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-800 hover:bg-gray-200 no-underline decoration-transparent border-0 outline-none appearance-none" data-tab-target="#tab-1">
+                    Automated Reception
+                </button>
 
-          <a href="/review-match"
-             class="px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-800 hover:bg-gray-200 no-underline decoration-transparent border-0 outline-none appearance-none">
-            Review & Match
-          </a>
+                 <button class="tab-link px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-800 hover:bg-gray-200 no-underline decoration-transparent border-0 outline-none appearance-none" data-tab-target="#tab-2">
+                    Review & Match
+                </button>
 
-          <a href="/analytics"
-             class="px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-800 hover:bg-gray-200 no-underline decoration-transparent border-0 outline-none appearance-none">
-            Analytics
-          </a>
+                <button class="tab-link px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-800 hover:bg-gray-200 no-underline decoration-transparent border-0 outline-none appearance-none" data-tab-target="#tab-3">
+                    Analytics
+                </button>
 
-          <a href="/suppliers"
-             class="px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-800 hover:bg-gray-200 no-underline decoration-transparent border-0 outline-none appearance-none">
-            Suppliers
-          </a>
-        </nav>
-      </div>
-
-      <a href="/"
-         class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md bg-white text-gray-900 shadow-sm ring-1 ring-gray-200 hover:bg-gray-50 no-underline decoration-transparent border-0 outline-none appearance-none">
-        Back to Home
-      </a>
+              <button class="tab-link px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-800 hover:bg-gray-200 no-underline decoration-transparent border-0 outline-none appearance-none" data-tab-target="#tab-4">
+                    Suppliers
+                </button>
     </div>
 
-    <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-5">
-      <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
-        <p class="text-sm text-gray-500">Invoices Received Today</p>
-        <p class="text-2xl font-semibold mt-2">—</p>
-      </div>
+    <div class="p-6">
 
-      <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
-        <p class="text-sm text-gray-500">Processed</p>
-        <p class="text-2xl font-semibold mt-2">—</p>
-      </div>
+      <!--Tab 1 Content-->
+      <div id="tab-1" class="tab-content block">
 
-      <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
-        <p class="text-sm text-gray-500">Failed Extraction</p>
-        <p class="text-2xl font-semibold mt-2">—</p>
-      </div>
-    </div>
+          <!--The little boxes on top-->
+           <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-5">
 
-    <div class="mt-6 grid grid-cols-1 md:grid-cols-5 gap-5">
-      <div class="md:col-span-2 bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
-        <h2 class="text-lg font-semibold text-gray-900">Invoice Inbox</h2>
-        <p class="text-sm text-gray-500 mt-1">No invoices loaded yet.</p>
+             <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
+                <p class="text-sm text-gray-500">Invoices Received Today</p>
+                <p class="text-2xl font-semibold mt-2">—</p>
+             </div>
 
-        <div class="mt-6 flex items-center justify-center border border-dashed border-gray-200 rounded-lg h-40 text-gray-400">
-          Empty
-        </div>
+              <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
+                <p class="text-sm text-gray-500">Processed</p>
+                <p class="text-2xl font-semibold mt-2">—</p>
+              </div>
 
-        <button class="mt-6 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-lg border-0 outline-none appearance-none">
-          Upload Invoice
-        </button>
-      </div>
+              <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
+                <p class="text-sm text-gray-500">Failed Extraction</p>
+                <p class="text-2xl font-semibold mt-2">—</p>
+              </div>
 
-      <div class="md:col-span-3 bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
-        <div class="flex items-start justify-between">
-          <div>
-            <h2 class="text-lg font-semibold text-gray-900">Processing Queue</h2>
-            <p class="text-sm text-gray-500 mt-1">Invoices ready for review and matching</p>
+            </div>
+
+          <!-- The larger boxes-->
+          <div class="mt-6 grid grid-cols-1 md:grid-cols-5 gap-5">
+            <div class="md:col-span-2 bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
+              <h2 class="text-lg font-semibold text-gray-900">Invoice Inbox</h2>
+              <p class="text-sm text-gray-500 mt-1">No invoices loaded yet.</p>
+
+              <div class="mt-6 flex items-center justify-center border border-dashed border-gray-200 rounded-lg h-40 text-gray-400">
+                Empty
+              </div>
+
+              <button class="mt-6 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-lg border-0 outline-none appearance-none">
+                Upload Invoice
+              </button>
+            </div>
+
+            <div class="md:col-span-3 bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
+              <div class="flex items-start justify-between">
+                <div>
+                  <h2 class="text-lg font-semibold text-gray-900">Processing Queue</h2>
+                  <p class="text-sm text-gray-500 mt-1">Invoices to be processed.</p>
+                </div>
+                <button class="bg-gray-900 hover:bg-black text-white font-medium px-5 py-3 rounded-lg border-0 outline-none appearance-none">
+                  Run Matching
+                </button>
+              </div>
+
+              <div class="mt-6 flex items-center justify-center border border-dashed border-gray-200 rounded-lg h-48 text-gray-400">
+                No invoices available for review.
+              </div>
+            </div>
           </div>
-          <button class="bg-gray-900 hover:bg-black text-white font-medium px-5 py-3 rounded-lg border-0 outline-none appearance-none">
-            Run Matching
-          </button>
         </div>
 
-        <div class="mt-6 flex items-center justify-center border border-dashed border-gray-200 rounded-lg h-48 text-gray-400">
-          No invoices available for review.
-        </div>
-      </div>
-    </div>
-  </div>
+      <!--Tab 2 Content-->
+      <div id="tab-2" class="tab-content block">
+
+          <!--The little boxes on top-->
+           <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-5">
+
+             <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
+                <p class="text-sm text-gray-500">Confidence Distribution</p>
+                <p class="text-2xl font-semibold mt-2">—</p>
+             </div>
+
+              <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
+                <p class="text-sm text-gray-500">Queue Status</p>
+                <p class="text-2xl font-semibold mt-2">—</p>
+              </div>
+
+              <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
+                <p class="text-sm text-gray-500">Total Value</p>
+                <p class="text-2xl font-semibold mt-2">—</p>
+              </div>
+
+              <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
+                <p class="text-sm text-gray-500">Performance</p>
+                <p class="text-2xl font-semibold mt-2">—</p>
+              </div>
+
+              <!--The Review Queue-->
+              <div class="md:col-span-3 bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
+              <div class="flex items-start justify-between">
+                <div>
+                  <h2 class="text-lg font-semibold text-gray-900">Review Queue</h2>
+                  <p class="text-sm text-gray-500 mt-1">Invoices ready for review and matching</p>
+                </div>
+                </div>
+
+                <div class="mt-6 flex items-center justify-center border border-dashed border-gray-200 rounded-lg h-48 text-gray-400">
+                  No invoices available for review.
+                </div>
+              </div>
+            </div>
+      </div> <!-- end tab 2 -->
+
+      <!--Tab 3 Content-->
+      <div id="tab-3" class="tab-content block">
+
+          <!--The little boxes on top-->
+           <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-5">
+
+             <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
+                <p class="text-sm text-gray-500">Total Processed</p>
+                <p class="text-2xl font-semibold mt-2">—</p>
+             </div>
+
+              <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
+                <p class="text-sm text-gray-500">Time Saved</p>
+                <p class="text-2xl font-semibold mt-2">—</p>
+              </div>
+
+              <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
+                <p class="text-sm text-gray-500">Matched</p>
+                <p class="text-2xl font-semibold mt-2">—</p>
+              </div>
+
+              <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
+                <p class="text-sm text-gray-500">Avg Process Time</p>
+                <p class="text-2xl font-semibold mt-2">—</p>
+              </div>
+            </div>
+            </div>
+
+             <!--Tab 4 Content-->
+            <div id="tab-4" class="tab-content block">
+
+            <!--The little boxes on top-->
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-5">
+
+              <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
+                  <p class="text-sm text-gray-500">Total Suppliers</p>
+                  <p class="text-2xl font-semibold mt-2">—</p>
+              </div>
+
+                <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
+                  <p class="text-sm text-gray-500">Pending Invoices</p>
+                  <p class="text-2xl font-semibold mt-2">—</p>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
+                  <p class="text-sm text-gray-500">Due This Week</p>
+                  <p class="text-2xl font-semibold mt-2">—</p>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
+                  <p class="text-sm text-gray-500">Total Value</p>
+                  <p class="text-2xl font-semibold mt-2">—</p>
+                </div>
+            </div>
+            </div>
+
+    </div> <!-- end tabs -->    
+  </div> <!-- end card -->
+
+  <a href="/"
+     class="mt-6 inline-flex items-center px-4 py-2 text-sm font-medium rounded-md bg-white text-gray-900 shadow-sm ring-1 ring-gray-200 hover:bg-gray-50 no-underline decoration-transparent border-0 outline-none appearance-none">
+     Back to Home
+  </a>
+
 </div>
+
+<!--Somewhere along the lines I did the dangerous thing of losing track of where the divs 
+    should end so I wrote extra notes but :^( -->
+
+<script>
+    const tabs = document.querySelectorAll('.tab-link');
+    const contents = document.querySelectorAll('.tab-content');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const target = document.querySelector(tab.dataset.tabTarget);
+
+            //Hide content
+            contents.forEach(content => content.classList.add('hidden'));
+            tabs.forEach(t => {
+                t.classList.remove('border-blue-500', 'text-blue-600');
+                t.classList.add('border-transparent', 'text-gray-500');
+            });
+
+            //Active content
+            target.classList.remove('hidden');
+            tab.classList.add('border-blue-500', 'text-blue-600');
+            tab.classList.remove('border-transparent', 'text-gray-500');
+        });
+    });
+
+  document.querySelector('.tab-link').click();
+</script>
 
 {% endblock %}

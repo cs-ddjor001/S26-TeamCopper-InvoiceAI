@@ -35,3 +35,6 @@ __pycache__/
 data/*
 *.pdf
 
+# Tailwind 
+tailwindcss.exe
+static/src/output.css 
