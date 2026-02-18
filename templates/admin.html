@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+		<title>AI² – Administrative Dashboard</title>
+		<link
+			rel="stylesheet"
+			href="{{ url_for('static', filename='src/output.css') }}"
+		/>
+	</head>
+	<body class="bg-gray-100">
+		<header class="p-6 bg-white text-gray-900 text-xl">
+			<h1 class="text-xl">Administrative Dashboard</h1>
+		</header>
+		<div class="bg-white border-y border-gray-300">
+			<div class="flex gap-2 bg-gray-100 p-1 rounded-xl w-fit">
+				<button
+					class="tab-btn px-4 py-1.5 rounded-xl text-sm font-medium bg-white shadow"
+					data-tab="panel_confidence_score"
+				>
+					Confidence Score
+				</button>
+
+				<button
+					class="tab-btn px-4 py-1.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-white"
+					data-tab="panel_email"
+				>
+					Email
+				</button>
+
+				<button
+					class="tab-btn px-4 py-1.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-white"
+					data-tab="panel_model"
+				>
+					Model
+				</button>
+
+				<button
+					class="tab-btn px-4 py-1.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-white"
+					data-tab="panel_suppliers"
+				>
+					Suppliers
+				</button>
+			</div>
+		</div>
+		<div class="mt-6 relative max-w-3xl mx-auto">
+			<div
+				id="panel_confidence_score"
+				class="tab-panel transition-opacity duration-300 opacity-100 px-6"
+			>
+				Confidence score content here
+			</div>
+			<div
+				id="panel_email"
+				class="tab-panel transition-opacity duration-300 opacity-0 pointer-events-none absolute inset-0 px-6"
+			>
+				Email content here
+			</div>
+			<div
+				id="panel_model"
+				class="tab-panel transition-opacity duration-300 opacity-0 pointer-events-none absolute inset-0 px-6"
+			>
+				Model content here
+			</div>
+			<div
+				id="panel_suppliers"
+				class="tab-panel transition-opacity duration-300 opacity-0 pointer-events-none absolute inset-0 px-6"
+			>
+				Suppliers content here
+			</div>
+		</div>
+		<script>
+			const tabs = document.querySelectorAll(".tab-btn");
+			const panels = document.querySelectorAll(".tab-panel");
+
+			tabs.forEach((tab) => {
+				tab.addEventListener("click", () => {
+					const targetId = tab.dataset.tab;
+
+					panels.forEach((panel) => {
+						panel.classList.remove("opacity-100");
+						panel.classList.add("opacity-0", "pointer-events-none");
+					});
+
+					tabs.forEach((t) => {
+						t.classList.remove("bg-white", "shadow", "text-black");
+						t.classList.add("text-gray-600");
+					});
+
+					const active = document.getElementById(targetId);
+					active.classList.remove("opacity-0", "pointer-events-none");
+					active.classList.add("opacity-100");
+
+					tab.classList.add("bg-white", "shadow", "text-black");
+					tab.classList.remove("text-gray-600");
+				});
+			});
+		</script>
+	</body>
+</html>
