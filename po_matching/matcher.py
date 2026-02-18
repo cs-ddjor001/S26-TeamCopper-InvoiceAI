@@ -1,14 +1,5 @@
 from models.purchase_orders import Purchase_Order
 
-# This is my assumption on how the invoice to be matched after it's parsed, wil be changed if needed
-
-class ParsedInvoice:
-    def __init__(self, po_number=None, vendor=None, amount=None, date=None):
-        self.po_number = po_number
-        self.vendor = vendor
-        self.amount = amount
-        self.date = date
-
 # Again, this is based on my assumption, will change accordingly.
 
 def match_invoice(parsed_invoice):
