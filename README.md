@@ -18,10 +18,12 @@ Team Copper - Spring 2026
 - pip install reportlab (pdf gen.)
 - .\.venv\Scripts\python.exe -m pip install setuptools==68.0.0
 
-## How to run seeder:
-There are two options: 
+## How to run seeders:
+There are two options for invoices: 
 1. For PDFs: python seeders\invoice_pdf_seeder.py
 2. For CSVs: python -m seeders.invoice_csv_seeder
+
+Now, for the purchase orders: python -m seeders.purchase_order_seeder
 
 ## PDF Parsing Pipeline
 
