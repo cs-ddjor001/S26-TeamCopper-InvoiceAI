@@ -3,29 +3,30 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>AI² – {% block title %} {% endblock %}</title>
+		<title>AI² – {% block title %}{% endblock %}</title>
 		<link
 			rel="stylesheet"
 			href="{{ url_for('static', filename='css/main.css') }}"
 		/>
+		<script src="https://cdn.tailwindcss.com"></script>
 	</head>
 	<body>
         <div id="header-wrapper">
             <section id="hero" class="container">
                 <header>
-    			    <h2><em>Artificially Intelligent Invoices</em></h1>	
+    			    <h2><em>Artificially Intelligent Invoices</em></h2>
                 </header>
             </section>
         </div>
         <div>
-            {% block content %} {% endblock %}
+            {% block content %}{% endblock %}
         </div>
         <div id="footer-wrapper">
 			<div id="footer" class="container">
 				<header class="major">
 					<h1>Team Copper 2025</h1>
-					<h2\3><a href="https://www.odu.edu/">Old Dominion University</a></h2>
-						<h4><a href="https://www.odu.edu/computer-science">Department of Computer Science</a></h3>
+					<h2><a href="https://www.odu.edu/">Old Dominion University</a></h2>
+					<h4><a href="https://www.odu.edu/computer-science">Department of Computer Science</a></h4>
 				</header>
 
 				<div id="copyright" class="container">
@@ -40,5 +41,6 @@
 					</ul>
 				</div>
 			</div>
+		</div>
 	</body>
 </html>

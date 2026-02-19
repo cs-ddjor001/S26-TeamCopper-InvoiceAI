@@ -33,4 +33,8 @@ __pycache__/
 
 # Dummy data files
 data/*
+*.pdf
 
+# Tailwind 
+tailwindcss.exe
+static/src/output.css 

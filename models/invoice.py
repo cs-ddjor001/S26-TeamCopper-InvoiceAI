@@ -1,9 +1,11 @@
 from extensions import db
 
 class Invoice(db.Model):
+    __tablename__ = "invoice"
+
     id = db.Column(db.Integer, primary_key=True)
-    po_number = db.Column(db.String(50), nullable=False)
-    supplier = db.Column(db.String(100), nullable=False)
+    po_number = db.Column(db.Integer, db.ForeignKey("purchase_orders.id"), nullable=False)
+    vendor = db.Column(db.Integer, db.ForeignKey("vendors.id"), nullable=False)
     amount = db.Column(db.Float, nullable=False)
     status = db.Column(db.String(50), default="pending")
 

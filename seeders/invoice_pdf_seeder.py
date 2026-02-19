@@ -12,9 +12,9 @@ and then print that onto the pdf
 
 def generate_invoice_pdf(filename): 
     # dummy data stuff we're generating for sake of demo
-    po_number = faker.bothify("PO-####-??"),        
-    supplier = faker.company(),
-    amount = faker.pyfloat(left_digits=5, right_digits=2, positive=True),
+    po_number = faker.bothify("PO-####-??")
+    supplier = faker.company()
+    amount = faker.pyfloat(left_digits=5, right_digits=2, positive=True)
     status = faker.random_element(elements=("pending", "complete", "in progress"))
        
     #pdf stuff
@@ -22,7 +22,7 @@ def generate_invoice_pdf(filename):
     document_title = 'Invoice Sample PDF'
     
     #pdf canvas setup
-    pdf = canvas.Canvas(filename,document_title)
+    pdf = canvas.Canvas(filename, pagesize=letter)
     pdf.setTitle(document_title)
     
     #font + title
