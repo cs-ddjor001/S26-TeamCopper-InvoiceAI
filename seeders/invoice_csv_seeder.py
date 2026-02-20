@@ -24,14 +24,15 @@ class InvoiceCSVFileSeeder(Seeder):
                     "po_number": po["po_number"],
                     "vendor": po["vendor"],
                     "amount": po["amount"],
-                    "status": faker.random_element(elements=("pending", "complete", "in progress"))
+                    "status": faker.random_element(elements=("pending", "complete", "in progress")),
+                    "date": po["date_issued"]
                 })
         
             filename = f"invoice_seed_{i+1}.csv"
             output_path = os.path.join("data", filename)
 
             with open(output_path, "w", newline="") as csvfile:
-                writer = csv.DictWriter(csvfile, fieldnames=["po_number", "vendor", "amount", "status"])
+                writer = csv.DictWriter(csvfile, fieldnames=["po_number", "vendor", "amount", "status", "date"])
                 writer.writeheader()
                 writer.writerows(invoices)
         

@@ -16,6 +16,7 @@ def generate_invoice_pdf(filename):
     supplier = faker.company()
     amount = faker.pyfloat(left_digits=5, right_digits=2, positive=True)
     status = faker.random_element(elements=("pending", "complete", "in progress"))
+    date = faker.date_this_year()
        
     #pdf stuff
     filename = 'sample.pdf'
@@ -37,7 +38,8 @@ def generate_invoice_pdf(filename):
         f"PO Number:    {po_number}",
         f"Supplier:     {supplier}",
         f"Amount:      ${amount}",
-        f"Status:       {status}" 
+        f"Status:       {status}", 
+        f"Date Issued:  {date}"
     ]
     
     #hopefully printing out those details? :sob:
