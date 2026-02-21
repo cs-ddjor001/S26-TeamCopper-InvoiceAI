@@ -22,7 +22,8 @@ def home():
 
 @app.route("/dashboard")
 def dashboard():
-    return render_template("dashboard.html")
+    invoices = models.Invoice.query.all()
+    return render_template("dashboard.html", invoices=invoices)
 
 if __name__ == "__main__":
     with app.app_context():

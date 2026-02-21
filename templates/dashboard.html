@@ -5,13 +5,13 @@
 {% block content %}
 
 <div class="bg-gray-50">
-  <div class="max-w-5xl mx-auto px-6 py-8">
+  <div class="max-w-8xl mx-auto px-6 py-8">
       <div>
         <h1 class="text-2xl font-semibold text-gray-900">Invoice Processing System</h1>
         <p class="text-gray-600 mt-1">Upload, extract, and match invoices with purchase orders</p>
-        
+    
         <nav class="mt-5 w-full ">
-          <div class="max-w-5xl mx-auto bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 mt-10">
+          <div class="max-w-8xl mx-auto bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 mt-10">
               <div class="flex border-b bg-gray-50">
 
                 <button class="tab-link px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-800 hover:bg-gray-200 no-underline decoration-transparent border-0 outline-none appearance-none" data-tab-target="#tab-1">
@@ -41,7 +41,7 @@
 
              <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
                 <p class="text-sm text-gray-500">Invoices Received Today</p>
-                <p class="text-2xl font-semibold mt-2">—</p>
+                <p class="text-2xl font-semibold mt-2">{{ invoices|length }}</p>
              </div>
 
               <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
@@ -77,13 +77,20 @@
                   <h2 class="text-lg font-semibold text-gray-900">Processing Queue</h2>
                   <p class="text-sm text-gray-500 mt-1">Invoices to be processed.</p>
                 </div>
+                <div></div>
                 <button class="bg-gray-900 hover:bg-black text-white font-medium px-5 py-3 rounded-lg border-0 outline-none appearance-none">
                   Run Matching
                 </button>
               </div>
 
               <div class="mt-6 flex items-center justify-center border border-dashed border-gray-200 rounded-lg h-48 text-gray-400">
-                No invoices available for review.
+                <ul>
+                  {% for invoice in invoices %}
+                  <li> {{ invoice.vendor }} {{ invoice.date }} {{ invoice.amount }} {{ invoice.status }}</li>
+                  {% else %}
+                    No invoices available for review.
+                  {% endfor %}
+                </ul>
               </div>
             </div>
           </div>
