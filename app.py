@@ -25,6 +25,16 @@ def dashboard():
     invoices = models.Invoice.query.all()
     return render_template("dashboard.html", invoices=invoices)
 
+
+@app.route("/ap")
+def ap():
+    invoices = models.Invoice.query.all()
+    purchase_orders = models.Purchase_Order.query.all()
+    return render_template(
+        "ap.html", invoices=invoices, purchase_orders=purchase_orders
+    )
+
+
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
