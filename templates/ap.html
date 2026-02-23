@@ -56,7 +56,7 @@
 								>
 									<p class="text-sm text-gray-500">Processed</p>
 									<p class="text-2xl font-semibold mt-2">
-										{{ invoices | selectattr("status", "equalto", "processed") |
+										{{ invoices | selectattr("status", "equalto", "complete") |
 										list | length }}
 									</p>
 								</div>
@@ -127,14 +127,22 @@
 									<div
 										class="mt-6 flex items-center justify-center border border-dashed border-gray-200 rounded-lg h-48 text-gray-400"
 									>
-										<ul>
+										<table class="text-black text-center text-lg">
+											<tr>
+											<th class="pb-4 font-bold">Vendor</th>
+											<th class="pb-4 font-bold">Date</th>
+											<th class="pb-4 font-bold">Amount</th>
+											<th class="pb-4 font-bold">Status</th>
+											</tr>
 											{% for invoice in invoices %}
-											<li>
-												{{ invoice.vendor }} {{ invoice.date }} {{
-												invoice.amount }} {{ invoice.status }}
-											</li>
+											<tr class="text-sm">
+												<td>{{ invoice.vendor }}</td>
+												<td>{{ invoice.date_issued | format_datetime('%m/%d/%Y') }}</td>
+												<td>{{ invoice.amount }}</td>
+												<td>{{ invoice.status }}</td>
+											</tr>
 											{% else %} No invoices available for review. {% endfor %}
-										</ul>
+										</table>
 									</div>
 								</div>
 							</div>
@@ -190,15 +198,24 @@
 									<div
 										class="mt-6 flex items-center justify-center border border-dashed border-gray-200 rounded-lg h-48 text-gray-400"
 									>
-										<ul>
+										<table class="text-black text-center text-lg">
+											<tr>
+											<th class="pb-4 font-bold">Invoice ID</th>
+											<th class="pb-4 font-bold">PO Number</th>
+											<th class="pb-4 font-bold">Vendor</th>
+											<th class="pb-4 font-bold">Amount</th>
+											<th class="pb-4 font-bold">Date Issued</th>
+											</tr>
 											{% for invoice in invoices %}
-											<li>
-												{{ invoice.id }} {{ invoice.po_number }} {{
-												invoice.vendor }} {{ invoice.amount }}
-												{{invoice.date_issued}}
-											</li>
+											<tr>
+												<td>{{ invoice.id }}</td>
+												<td>{{ invoice.po_number }}</td>
+												<td>{{ invoice.vendor }}</td>
+												<td>{{ invoice.amount }}</td>
+												<td>{{invoice.date_issued | format_datetime('%m/%d/%Y')}}</td>
+											</tr>
 											{% else %} No invoices available for review. {% endfor %}
-										</ul>
+										</table>
 									</div>
 								</div>
 
@@ -216,13 +233,22 @@
 									<div
 										class="mt-6 flex items-center justify-center border border-dashed border-gray-200 rounded-lg h-48 text-gray-400"
 									>
-										<ul>
+										<table class="text-black text-center text-lg">
+											<tr>
+											<th class="pb-4 font-bold">PO ID</th>
+											<th class="pb-4 font-bold">Vendor</th>
+											<th class="pb-4 font-bold">Amount</th>
+											<th class="pb-4 font-bold">Date Issued</th>
+											</tr>
 											{% for po in purchase_orders %}
-											<li>
-												{{po.id}}{{po.vendor}}{{po.amount}}{{po.date_issued}}
-											</li>
+											<tr>
+												<td>{{ po.id }}</td>
+												<td>{{ po.vendor }}</td>
+												<td>{{ po.amount }}</td>
+												<td>{{po.date_issued | format_datetime('%m/%d/%Y')}}</td>
+											</tr>
 											{% else %} No outstanding purchase orders. {% endfor %}
-										</ul>
+										</table>
 									</div>
 								</div>
 							</div>
@@ -238,7 +264,7 @@
 								>
 									<p class="text-sm text-gray-500">Total Processed</p>
 									<p class="text-2xl font-semibold mt-2">
-										{{ invoices | selectattr("status", "equalto", "processed") |
+										{{ invoices | selectattr("status", "equalto", "complete") |
 										list | length }}
 									</p>
 								</div>
@@ -277,15 +303,25 @@
 								<div
 									class="mt-6 flex items-center justify-center border border-dashed border-gray-200 rounded-lg h-48 text-gray-400"
 								>
-									<ul>
+									<table class="text-black text-center text-lg">
+										<tr>
+											<th class="pb-4 font-bold">Invoice ID</th>
+											<th class="pb-4 font-bold">PO Number</th>
+											<th class="pb-4 font-bold">Vendor</th>
+											<th class="pb-4 font-bold">Amount</th>
+											<th class="pb-4 font-bold">Date Issued</th>
+										</tr>
 										{% for invoice in invoices %} {% if invoice.status ==
-										"processed" %}
-										<li>
-											{{ invoice.id }} {{ invoice.po_number }} {{ invoice.vendor
-											}} {{ invoice.amount }} {{invoice.date_issued}}
-										</li>
+										"complete" %}
+										<tr>
+												<td>{{ invoice.id }}</td>
+												<td>{{ invoice.po_number }}</td>
+												<td>{{ invoice.vendor }}</td>
+												<td>{{ invoice.amount }}</td>
+												<td>{{invoice.date_issued | format_datetime('%m/%d/%Y')}}</td>
+										</tr>
 										{% endif %} {% else %} No completed invoices. {% endfor %}
-									</ul>
+									</table>
 								</div>
 							</div>
 						</div>
