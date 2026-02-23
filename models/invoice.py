@@ -1,5 +1,6 @@
 from extensions import db
 
+
 class Invoice(db.Model):
     __tablename__ = "invoice"
 
@@ -11,4 +12,4 @@ class Invoice(db.Model):
     date_issued = db.Column(db.DateTime, nullable=False)
 
     def __repr__(self):
-        return f"<Invoice {self.po_number}>"
+        return f"<Invoice {self.id}>"

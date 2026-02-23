@@ -14,6 +14,11 @@ with app.app_context():
     print(f"  Supplier:              {parsed.supplier}")
     print(f"  Amount:                {parsed.amount}")
     print(f"  Status:                {parsed.status}")
+    print(f"  Date Issued:           {parsed.date}")
 
     invoice = save_parsed_invoice(parsed)
-    print(f"\nSaved to DB — Invoice id: {invoice.id}, PO id: {invoice.po_number}, Vendor id: {invoice.vendor}")
+    print(
+        f"\nSaved to DB — Invoice id: {invoice.id}, "
+        f"PO id: {invoice.po_number}, Vendor id: {invoice.vendor}, "
+        f"Invoice Date: {invoice.date_issued}"
+    )

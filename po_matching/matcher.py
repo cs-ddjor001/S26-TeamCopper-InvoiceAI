@@ -1,6 +1,6 @@
 from models.purchase_orders import Purchase_Order
+from models.vendors import Vendors
 
-# Again, this is based on my assumption, will change accordingly.
 
 def match_invoice(parsed_invoice):
     if parsed_invoice.po_number:
@@ -8,16 +8,21 @@ def match_invoice(parsed_invoice):
         if found_match:
             return found_match
 
-    return match_by_other_fields(parsed_invoice)
+    return match_by_fields(parsed_invoice)
 
 
 def match_to_po_directly(po_number):
-    return Purchase_Order.query.filter_by(id=po_number).first()
+    return Purchase_Order.query.filter_by(po_number=po_number).first()
 
 
-def match_by_other_fields(parsed_invoice):
+def match_by_fields(parsed_invoice):
+    vendor = Vendors.query.filter_by(name=parsed_invoice.supplier).first()
+
+    if not vendor:
+        return None
+    
     return Purchase_Order.query.filter_by(
-        date_issued=parsed_invoice.date,
-        vendor=parsed_invoice.vendor,
-        amount=parsed_invoice.amount
+        vendor = vendor.id,
+        amount=parsed_invoice.amount,
+        date_issued=parsed_invoice.date
     ).first()

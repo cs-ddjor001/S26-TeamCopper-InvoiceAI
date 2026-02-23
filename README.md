@@ -18,51 +18,32 @@ Team Copper - Spring 2026
 - pip install reportlab (pdf gen.)
 - .\.venv\Scripts\python.exe -m pip install setuptools==68.0.0
 
+## PDF Parsing Pipeline
+
+Parses a generated invoice PDF and saves the data to the database.
+
+## Important to do before running anything!
+1. Make sure to delete the app.db file if you have not done so already.
+2. Run python app.py to create a new app.db with updated tables.
+3. Proceed below to run the seeders.
+
 ## How to run seeders:
 There are two options for invoices: 
 1. For PDFs: python seeders\invoice_pdf_seeder.py
 2. For CSVs: python -m seeders.invoice_csv_seeder
+3. python -m seeders.purchase_order_seeder
 
 ## PDF Parsing Pipeline
 
 Parses a generated invoice PDF and saves the data to the database.
 
-### New dependency
-pip install pdfplumber
-
-### How to run
+## How to run
 1. Generate a PDF:
    python seeders/invoice_pdf_seeder.py
 
 2. Parse it into the database:
-   python parse_pdf.py
+   python parse_pdf.py data/sample_#.pdf (replace # with any number from 1-50).
 
-This creates a Vendor (if one with that name doesn't exist), a Purchase_Order,
-and an Invoice row in app.db. Run python app.py first if app.db doesn't exist yet.
+3. Repeat until you are happy with how many pdfs are parsed and populated.
 
-Note: The parser reads field labels exactly as written by the seeder
-("PO Number:", "Supplier:", "Amount:", "Status:"). If those labels change
-in the seeder, parser.py must be updated to match.
-
-Now, for the purchase orders: python -m seeders.purchase_order_seeder
-
-## PDF Parsing Pipeline
-
-Parses a generated invoice PDF and saves the data to the database.
-
-### New dependency
-pip install pdfplumber
-
-### How to run
-1. Generate a PDF:
-   python seeders/invoice_pdf_seeder.py
-
-2. Parse it into the database:
-   python parse_pdf.py
-
-This creates a Vendor (if one with that name doesn't exist), a Purchase_Order,
-and an Invoice row in app.db. Run python app.py first if app.db doesn't exist yet.
-
-Note: The parser reads field labels exactly as written by the seeder
-("PO Number:", "Supplier:", "Amount:", "Status:"). If those labels change
-in the seeder, parser.py must be updated to match.
+4. Use Flask run to check the number of invoices counted on the website.
