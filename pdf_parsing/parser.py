@@ -1,5 +1,6 @@
 import re
 import pdfplumber
+from datetime import datetime
 from models.parsed_invoice import ParsedInvoice
 
 
@@ -11,15 +12,14 @@ def parse_invoice_pdf(filepath):
     supplier = None
     amount = None
     status = None
+    date = None
 
     for line in text.split("\n"):
         line = line.strip()
 
         if line.startswith("PO Number:"):
             raw = line.split(":", 1)[1].strip()
-            match = re.search(r"\d+", raw)
-            if match:
-                po_number = int(match.group())
+            po_number = raw  # keep full string
 
         elif line.startswith("Supplier:"):
             supplier = line.split(":", 1)[1].strip()
@@ -34,9 +34,17 @@ def parse_invoice_pdf(filepath):
         elif line.startswith("Status:"):
             status = line.split(":", 1)[1].strip()
 
+        elif line.startswith("Date Issued:"):
+            raw = line.split(":", 1)[1].strip()
+            try:
+                date = datetime.strptime(raw, "%Y-%m-%d")
+            except ValueError:
+                date = None
+
     return ParsedInvoice(
         po_number=po_number,
         supplier=supplier,
         amount=amount,
         status=status,
+        date=date,
     )

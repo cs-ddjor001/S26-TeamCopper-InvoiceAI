@@ -10,45 +10,38 @@ to make sure i'm not an idiot, i will generate the dummy data first
 and then print that onto the pdf
 """
 
-def generate_invoice_pdf(filename): 
-    # dummy data stuff we're generating for sake of demo
+def generate_invoice_pdf(filename):
+
     po_number = faker.bothify("PO-####-??")
     supplier = faker.company()
     amount = faker.pyfloat(left_digits=5, right_digits=2, positive=True)
     status = faker.random_element(elements=("pending", "complete", "in progress"))
     date = faker.date_this_year()
-       
-    #pdf stuff
-    filename = 'sample.pdf'
-    document_title = 'Invoice Sample PDF'
-    
-    #pdf canvas setup
+
     pdf = canvas.Canvas(filename, pagesize=letter)
-    pdf.setTitle(document_title)
-    
-    #font + title
+    pdf.setTitle("Invoice Sample PDF")
+
     pdf.setFont("Helvetica-Bold", 24)
-    pdf.drawCentredString   (300, 770, document_title)
+    pdf.drawCentredString(300, 770, "Invoice Sample PDF")
 
     text_object = pdf.beginText(100, 700)
     text_object.setFont("Helvetica", 12)
 
-    #formatted for text for pdf
     textlines = [
         f"PO Number:    {po_number}",
         f"Supplier:     {supplier}",
         f"Amount:      ${amount}",
-        f"Status:       {status}", 
+        f"Status:       {status}",
         f"Date Issued:  {date}"
     ]
-    
-    #hopefully printing out those details? :sob:
-    for lines in textlines:
-        text_object.textLine(lines)
+
+    for line in textlines:
+        text_object.textLine(line)
 
     pdf.drawText(text_object)
     pdf.showPage()
     pdf.save()
+
     """ lol i forget this is called a sanity check, BUT IT WORKS 
     print("dummy data generated:")
     print(f"PO Number:    {po_number}")
@@ -59,9 +52,15 @@ def generate_invoice_pdf(filename):
     print(f"Successfully generated {filename} with dummy invoice data. (hopefully)")
     
     
+def generate_multiple(n=50):
+    os.makedirs("data", exist_ok=True)
+    for i in range(n):
+        generate_invoice_pdf(f"data/sample_{i+1}.pdf")
+
+    print(f"{n} PDF invoices generated.")
+
 if __name__ == "__main__":
-    generate_invoice_pdf("sample.pdf")
-    #seeder.run()
+    generate_multiple(50)
 
 """
 bruh i'm just trying to comment out

@@ -1,9 +1,10 @@
-import os, csv
+import os
+import csv
 from faker import Faker
 
 faker = Faker()
 
-def generate_purchase_orders(n = 51):
+def generate_purchase_orders(n=50):
     os.makedirs("data", exist_ok=True)
 
     purchase_orders = []
@@ -16,10 +17,10 @@ def generate_purchase_orders(n = 51):
             "date_issued": faker.date_this_year()
         })
 
-        with open("data/purchase_orders.csv", "w", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=purchase_orders[0].keys())
-            writer.writeheader()
-            writer.writerows(purchase_orders)
+    with open("data/purchase_orders.csv", "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=purchase_orders[0].keys())
+        writer.writeheader()
+        writer.writerows(purchase_orders)
 
     print("Purchase order listed can be found under data/ folder.")
     return purchase_orders
