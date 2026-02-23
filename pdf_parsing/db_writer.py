@@ -28,6 +28,7 @@ def save_parsed_invoice(parsed_invoice):
         vendor=vendor.id,
         amount=parsed_invoice.amount,
         status=parsed_invoice.status or "pending",
+        date_issued=datetime.utcnow(),
     )
     db.session.add(invoice)
     db.session.commit()
