@@ -1,17 +1,54 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block title %}Home{% endblock %} {% block content
+%}
 
-{% block title %}Home{% endblock %}
+<div class="bg-white p-8 rounded-lg shadow max-w-md mx-auto text-center">
+	<h1 class="text-2xl font-semibold mb-4">Login</h1>
+	<p class="text-gray-600 mb-6">Enter your username to continue.</p>
 
-{% block content %}
+	<form id="login-form" class="space-y-4">
+		<input
+			id="username"
+			type="text"
+			placeholder="Username"
+			class="w-full border border-gray-300 rounded-md px-4 py-2"
+			required
+		/>
+		<button
+			type="submit"
+			class="w-full bg-indigo-600 text-white px-6 py-3 rounded-md shadow hover:bg-indigo-700 transition"
+		>
+			Login
+		</button>
+	</form>
 
-<div class="bg-white p-8 rounded-lg shadow text-center">
-    <h1 class="text-2xl font-semibold mb-4">Home</h1>
-    <p class="text-gray-600 mb-6">What up?</p>
-
-    <a href="/dashboard"
-       class="inline-block bg-indigo-600 text-white px-6 py-3 rounded-md shadow hover:bg-indigo-700 transition">
-        Go to Dashboard
-    </a>
+	<p id="login-error" class="text-red-600 mt-4 hidden"></p>
 </div>
+
+<script>
+	const routeByUser = {
+		"sally.admin": "/admin",
+		"tom.ap": "/ap",
+		"jim.model": "/model_trainer",
+	};
+
+	document
+		.getElementById("login-form")
+		.addEventListener("submit", function (event) {
+			event.preventDefault();
+
+			const usernameInput = document.getElementById("username");
+			const errorEl = document.getElementById("login-error");
+			const username = usernameInput.value.trim().toLowerCase();
+
+			if (routeByUser[username]) {
+				window.location.href = routeByUser[username];
+				return;
+			}
+
+			errorEl.textContent =
+				"Unknown username. Try sally.admin, tom.ap, or jim.model.";
+			errorEl.classList.remove("hidden");
+		});
+</script>
 
 {% endblock %}

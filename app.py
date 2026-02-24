@@ -25,6 +25,7 @@ def dashboard():
     invoices = models.Invoice.query.all()
     return render_template("dashboard.html", invoices=invoices)
 
+
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
