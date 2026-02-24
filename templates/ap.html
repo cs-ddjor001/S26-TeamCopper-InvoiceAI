@@ -127,22 +127,27 @@
 									<div
 										class="mt-6 flex items-center justify-center border border-dashed border-gray-200 rounded-lg h-48 text-gray-400"
 									>
+										{% if (invoices | length) > 0: %}
 										<table class="text-black text-center text-lg">
 											<tr>
-											<th class="pb-4 font-bold">Vendor</th>
-											<th class="pb-4 font-bold">Date</th>
-											<th class="pb-4 font-bold">Amount</th>
-											<th class="pb-4 font-bold">Status</th>
+												<th class="pb-4 font-bold">Vendor</th>
+												<th class="pb-4 font-bold">Date</th>
+												<th class="pb-4 font-bold">Amount</th>
+												<th class="pb-4 font-bold">Status</th>
 											</tr>
 											{% for invoice in invoices %}
 											<tr class="text-sm">
 												<td>{{ invoice.vendor }}</td>
-												<td>{{ invoice.date_issued | format_datetime('%m/%d/%Y') }}</td>
+												<td>
+													{{ invoice.date_issued | format_datetime('%m/%d/%Y')
+													}}
+												</td>
 												<td>{{ invoice.amount }}</td>
 												<td>{{ invoice.status }}</td>
 											</tr>
-											{% else %} No invoices available for review. {% endfor %}
+											{% endfor %}
 										</table>
+										{% else %} No invoices available for review. {% endif %}
 									</div>
 								</div>
 							</div>
@@ -150,115 +155,91 @@
 
 						<!--Tab 2 Content-->
 						<div id="tab-2" class="tab-content block">
-							<!--The little boxes on top-->
-							<div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-5">
-								<div
-									class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5"
-								>
-									<p class="text-sm text-gray-500">Confidence Distribution</p>
-									<p class="text-2xl font-semibold mt-2">—</p>
-								</div>
-
-								<div
-									class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5"
-								>
-									<p class="text-sm text-gray-500">Queue Status</p>
-									<p class="text-2xl font-semibold mt-2">—</p>
-								</div>
-
-								<div
-									class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5"
-								>
-									<p class="text-sm text-gray-500">Total Value</p>
-									<p class="text-2xl font-semibold mt-2">—</p>
-								</div>
-
-								<div
-									class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5"
-								>
-									<p class="text-sm text-gray-500">Performance</p>
-									<p class="text-2xl font-semibold mt-2">—</p>
-								</div>
-
-								<!--The Review Queue-->
-								<div
-									class="md:col-span-4 bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6"
-								>
-									<div class="flex items-start justify-between">
-										<div>
-											<h2 class="text-lg font-semibold text-gray-900">
-												Review Queue
-											</h2>
-											<p class="text-sm text-gray-500 mt-1">
-												Invoices ready for review and matching
-											</p>
-										</div>
+							<!--The Review Queue-->
+							<div
+								class="md:col-span-4 bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6 mb-4"
+							>
+								<div class="flex items-start justify-between">
+									<div>
+										<h2 class="text-lg font-semibold text-gray-900">
+											Review Queue
+										</h2>
+										<p class="text-sm text-gray-500 mt-1">
+											Invoices ready for review and matching
+										</p>
 									</div>
+								</div>
 
-									<div
-										class="mt-6 flex items-center justify-center border border-dashed border-gray-200 rounded-lg h-48 text-gray-400"
-									>
-										<table class="text-black text-center text-lg">
-											<tr>
+								<div
+									class="mt-6 flex items-center justify-center border border-dashed border-gray-200 rounded-lg h-48 text-gray-400"
+								>
+									{% if (invoices | length) > 0: %}
+									<table class="text-black text-center text-lg">
+										<tr>
 											<th class="pb-4 font-bold">Invoice ID</th>
 											<th class="pb-4 font-bold">PO Number</th>
 											<th class="pb-4 font-bold">Vendor</th>
 											<th class="pb-4 font-bold">Amount</th>
 											<th class="pb-4 font-bold">Date Issued</th>
-											</tr>
-											{% for invoice in invoices %}
-											<tr>
-												<td>{{ invoice.id }}</td>
-												<td>{{ invoice.po_number }}</td>
-												<td>{{ invoice.vendor }}</td>
-												<td>{{ invoice.amount }}</td>
-												<td>{{invoice.date_issued | format_datetime('%m/%d/%Y')}}</td>
-											</tr>
-											{% else %} No invoices available for review. {% endfor %}
-										</table>
+										</tr>
+										{% for invoice in invoices %}
+										<tr>
+											<td>{{ invoice.id }}</td>
+											<td>{{ invoice.po_number }}</td>
+											<td>{{ invoice.vendor }}</td>
+											<td>{{ invoice.amount }}</td>
+											<td>
+												{{invoice.date_issued | format_datetime('%m/%d/%Y')}}
+											</td>
+										</tr>
+										{% endfor %}
+									</table>
+									{% else %} No invoices available for review. {% endif %}
+								</div>
+							</div>
+
+							<div
+								class="md:col-span-4 bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6"
+							>
+								<div class="flex items-start justify-between">
+									<div>
+										<h2 class="text-lg font-semibold text-gray-900">
+											Purchase Orders
+										</h2>
+										<p class="text-sm text-gray-500 mt-1">Outstanding POs</p>
 									</div>
 								</div>
-
 								<div
-									class="md:col-span-4 bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6"
+									class="mt-6 flex items-center justify-center border border-dashed border-gray-200 rounded-lg h-48 text-gray-400"
 								>
-									<div class="flex items-start justify-between">
-										<div>
-											<h2 class="text-lg font-semibold text-gray-900">
-												Purchase Orders
-											</h2>
-											<p class="text-sm text-gray-500 mt-1">Outstanding POs</p>
-										</div>
-									</div>
-									<div
-										class="mt-6 flex items-center justify-center border border-dashed border-gray-200 rounded-lg h-48 text-gray-400"
-									>
-										<table class="text-black text-center text-lg">
-											<tr>
+									{% if (purchase_orders | length) > 0: %}
+									<table class="text-black text-center text-lg">
+										<tr>
 											<th class="pb-4 font-bold">PO ID</th>
 											<th class="pb-4 font-bold">Vendor</th>
 											<th class="pb-4 font-bold">Amount</th>
 											<th class="pb-4 font-bold">Date Issued</th>
-											</tr>
-											{% for po in purchase_orders %}
-											<tr>
-												<td>{{ po.id }}</td>
-												<td>{{ po.vendor }}</td>
-												<td>{{ po.amount }}</td>
-												<td>{{po.date_issued | format_datetime('%m/%d/%Y')}}</td>
-											</tr>
-											{% else %} No outstanding purchase orders. {% endfor %}
-										</table>
-									</div>
+										</tr>
+										{% for po in purchase_orders %}
+										<tr>
+											<td>{{ po.id }}</td>
+											<td>{{ po.vendor }}</td>
+											<td>{{ po.amount }}</td>
+											<td>{{po.date_issued | format_datetime('%m/%d/%Y')}}</td>
+										</tr>
+										{% endfor %}
+									</table>
+									{% else %} No outstanding purchase orders. {% endif %}
 								</div>
 							</div>
 						</div>
+
 						<!-- end tab 2 -->
 
 						<!--Tab 3 Content-->
 						<div id="tab-3" class="tab-content block">
 							<!--The little boxes on top-->
-							<div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-5">
+							<div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-5">
 								<div
 									class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5"
 								>
@@ -272,71 +253,68 @@
 								<div
 									class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5"
 								>
-									<p class="text-sm text-gray-500">Matched</p>
-									<p class="text-2xl font-semibold mt-2">—</p>
-								</div>
-
-								<div
-									class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5"
-								>
 									<p class="text-sm text-gray-500">Avg Process Time</p>
 									<p class="text-2xl font-semibold mt-2">—</p>
 								</div>
 							</div>
 
 							<!-- The larger boxes -->
-
-							<div
-								class="md:col-span-4 bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6"
-							>
-								<div class="flex items-start justify-between">
-									<div>
-										<h2 class="text-lg font-semibold text-gray-900">
-											Completed
-										</h2>
-										<p class="text-sm text-gray-500 mt-1">
-											Completed invoices from your queue
-										</p>
-									</div>
-								</div>
-
+							<div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-5">
 								<div
-									class="mt-6 flex items-center justify-center border border-dashed border-gray-200 rounded-lg h-48 text-gray-400"
+									class="md:col-span-4 bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6"
 								>
-									<table class="text-black text-center text-lg">
-										<tr>
-											<th class="pb-4 font-bold">Invoice ID</th>
-											<th class="pb-4 font-bold">PO Number</th>
-											<th class="pb-4 font-bold">Vendor</th>
-											<th class="pb-4 font-bold">Amount</th>
-											<th class="pb-4 font-bold">Date Issued</th>
-										</tr>
-										{% for invoice in invoices %} {% if invoice.status ==
-										"complete" %}
-										<tr>
+									<div class="flex items-start justify-between">
+										<div>
+											<h2 class="text-lg font-semibold text-gray-900">
+												Completed
+											</h2>
+											<p class="text-sm text-gray-500 mt-1">
+												Completed invoices from your queue
+											</p>
+										</div>
+									</div>
+
+									<div
+										class="mt-6 flex items-center justify-center border border-dashed border-gray-200 rounded-lg h-48 text-gray-400"
+									>
+										{% if (invoices | length) > 0: %}
+										<table class="text-black text-center text-lg">
+											<tr>
+												<th class="pb-4 font-bold">Invoice ID</th>
+												<th class="pb-4 font-bold">PO Number</th>
+												<th class="pb-4 font-bold">Vendor</th>
+												<th class="pb-4 font-bold">Amount</th>
+												<th class="pb-4 font-bold">Date Issued</th>
+											</tr>
+											{% for invoice in invoices %} {% if invoice.status ==
+											"complete" %}
+											<tr>
 												<td>{{ invoice.id }}</td>
 												<td>{{ invoice.po_number }}</td>
 												<td>{{ invoice.vendor }}</td>
 												<td>{{ invoice.amount }}</td>
-												<td>{{invoice.date_issued | format_datetime('%m/%d/%Y')}}</td>
-										</tr>
-										{% endif %} {% else %} No completed invoices. {% endfor %}
-									</table>
+												<td>
+													{{invoice.date_issued | format_datetime('%m/%d/%Y')}}
+												</td>
+											</tr>
+											{% endif %} {% endfor %}
+										</table>
+										{% else %} No completed invoices. {% endif %}
+									</div>
 								</div>
 							</div>
 						</div>
-
-						<!-- end tabs -->
 					</div>
-					<!-- end card -->
-
-					<a
-						href="/"
-						class="mt-6 inline-flex items-center px-4 py-2 text-sm font-medium rounded-md bg-white text-gray-900 shadow-sm ring-1 ring-gray-200 hover:bg-gray-50 no-underline decoration-transparent border-0 outline-none appearance-none"
-					>
-						Back to Home
-					</a>
+					<!-- end tabs -->
 				</div>
+				<!-- end card -->
+
+				<a
+					href="/"
+					class="mt-6 inline-flex items-center px-4 py-2 text-sm font-medium rounded-md bg-white text-gray-900 shadow-sm ring-1 ring-gray-200 hover:bg-gray-50 no-underline decoration-transparent border-0 outline-none appearance-none"
+				>
+					Back to Home
+				</a>
 
 				<script>
 					const tabs = document.querySelectorAll(".tab-link");
