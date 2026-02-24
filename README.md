@@ -17,6 +17,7 @@ Team Copper - Spring 2026
 - pip install Faker
 - pip install reportlab (pdf gen.)
 - .\.venv\Scripts\python.exe -m pip install setuptools==68.0.0
+- pip install pdfplumber
 
 ## PDF Parsing Pipeline
 
