@@ -1,3 +1,4 @@
+import csv
 import os
 from faker import Faker
 from reportlab.pdfgen import canvas
@@ -5,14 +6,24 @@ from reportlab.lib.pagesizes import letter
 
 faker = Faker()
 
+
+def load_po_numbers(filepath="data/purchase_orders.csv"):
+    po_numbers = []
+    with open(filepath, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            po_numbers.append(int(row["po_number"]))
+    return po_numbers
+
+
 """
 to make sure i'm not an idiot, i will generate the dummy data first
 and then print that onto the pdf
 """
 
-def generate_invoice_pdf(filename):
+def generate_invoice_pdf(filename, po_numbers):
 
-    po_number = faker.bothify("PO-####-??")
+    po_number = faker.random_element(po_numbers)
     supplier = faker.company()
     amount = faker.pyfloat(left_digits=5, right_digits=2, positive=True)
     status = faker.random_element(elements=("pending", "complete", "in progress"))
@@ -54,8 +65,9 @@ def generate_invoice_pdf(filename):
     
 def generate_multiple(n=50):
     os.makedirs("data", exist_ok=True)
+    po_numbers = load_po_numbers()
     for i in range(n):
-        generate_invoice_pdf(f"data/sample_{i+1}.pdf")
+        generate_invoice_pdf(f"data/sample_{i+1}.pdf", po_numbers)
 
     print(f"{n} PDF invoices generated.")
 
