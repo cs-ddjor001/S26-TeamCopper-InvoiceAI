@@ -30,6 +30,12 @@
     </div>
 {% endmacro %}
 
+{% macro render_sub_containers(title, content="text") %}
+    <div class="mt-6 flex items-center justify-center border border-dashed border-gray-200 rounded-lg h-10 text-black-400">
+      <p>{{ title }}: {{ content }}</p>
+     </div>
+{% endmacro %}
+
     <div class="p-6">
 
       <!--Tab 1 Content-->
@@ -45,15 +51,11 @@
 
                 <div class=" bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
                     <h2 class="text-lg font-semibold text-gray-900">Confidence Scoring</h2>
-                    <div class="mt-6 flex items-center justify-center border border-dashed border-gray-200 rounded-lg h-10 text-black-400">
-                        <p>Avg Confidence Score: -</p>
-                    </div>
-                    <div class="mt-6 flex items-center justify-center border border-dashed border-gray-200 rounded-lg h-10 text-black-400">
-                        <p>Highest Confidence Score: -</p>
-                    </div>
-                    <div class="mt-6 flex items-center justify-center border border-dashed border-gray-200 rounded-lg h-10 text-black-400">
-                        <p>Lowest Confidence Score: -</p>
-                    </div>
+
+                    {{ render_sub_containers("Avg Confidence Score", "—") }}
+                    {{ render_sub_containers("Highest Confidence Score", "—") }}
+                    {{ render_sub_containers("Lowest Confidence Score", "—") }}
+
                 </div>
 
                 
