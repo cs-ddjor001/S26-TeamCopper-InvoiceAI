@@ -117,11 +117,14 @@
 											</p>
 										</div>
 										<div></div>
+										<form method="POST" action="/run-matching">
 										<button
+											type="submit"
 											class="bg-gray-900 hover:bg-black text-white font-medium px-5 py-3 rounded-lg border-0 outline-none appearance-none"
 										>
 											Run Matching
 										</button>
+									</form>
 									</div>
 
 									<div
@@ -178,6 +181,8 @@
 										<tr>
 											<th class="pb-4 font-bold">Invoice ID</th>
 											<th class="pb-4 font-bold">PO Number</th>
+											<th class="pb-4 font-bold">Matched PO ID</th>
+											<th class="pb-4 font-bold">Confidence</th>
 											<th class="pb-4 font-bold">Vendor</th>
 											<th class="pb-4 font-bold">Amount</th>
 											<th class="pb-4 font-bold">Date Issued</th>
@@ -186,6 +191,8 @@
 										<tr>
 											<td>{{ invoice.id }}</td>
 											<td>{{ invoice.po_number }}</td>
+											<td>{{ invoice.matched_po_id if invoice.matched_po_id is not none else "—" }}</td>
+											<td>{{ invoice.confidence_score if invoice.confidence_score is not none else "—" }}</td>
 											<td>{{ invoice.vendor }}</td>
 											<td>{{ invoice.amount }}</td>
 											<td>
@@ -216,6 +223,7 @@
 									<table class="text-black text-left text-lg">
 										<tr>
 											<th class="pb-4 font-bold">PO ID</th>
+											<th class="pb-4 font-bold">PO Number</th>
 											<th class="pb-4 font-bold">Vendor</th>
 											<th class="pb-4 font-bold">Amount</th>
 											<th class="pb-4 font-bold">Date Issued</th>
@@ -223,6 +231,7 @@
 										{% for po in purchase_orders %}
 										<tr>
 											<td>{{ po.id }}</td>
+											<td>{{ po.po_number }}</td>
 											<td>{{ po.vendor }}</td>
 											<td>{{ po.amount }}</td>
 											<td>{{po.date_issued | format_datetime('%m/%d/%Y')}}</td>
