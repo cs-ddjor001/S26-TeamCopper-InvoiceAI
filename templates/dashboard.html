@@ -131,7 +131,7 @@
                         <div class="whitespace-nowrap">{{ invoice.po_number }}</div>
                         <div class="truncate min-w-0">{{ invoice.vendor }}</div>
                         <div class="whitespace-nowrap">{{ invoice.amount }}</div>
-                        <div class="whitespace-nowrap text-gray-500">{{ invoice.date }}</div>
+                        <div class="whitespace-nowrap text-gray-500">{{ invoice.date_issued | format_datetime('%m/%d/%Y') }}</div>
                       </div>
                     {% else %}
                       <div class="h-48 flex items-center justify-center text-gray-400">
