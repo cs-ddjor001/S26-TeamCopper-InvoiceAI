@@ -19,9 +19,6 @@ Team Copper - Spring 2026
 - .\.venv\Scripts\python.exe -m pip install setuptools==68.0.0
 - pip install pdfplumber
 
-## PDF Parsing Pipeline
-
-Parses a generated invoice PDF and saves the data to the database.
 
 ## Important to do before running anything!
 1. Make sure to delete the app.db file if you have not done so already.
@@ -32,7 +29,7 @@ Parses a generated invoice PDF and saves the data to the database.
 There are two options for invoices: 
 1. For PDFs: python seeders\invoice_pdf_seeder.py
 2. For CSVs: python -m seeders.invoice_csv_seeder
-3. python -m seeders.purchase_order_seeder
+3. python -m seeders.purchase_order_seeder, then python seeders\load_po_csv.py to load to db
 
 ## PDF Parsing Pipeline
 
