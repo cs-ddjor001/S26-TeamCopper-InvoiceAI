@@ -19,6 +19,9 @@ with app.app_context():
     invoice = save_parsed_invoice(parsed)
     print(
         f"\nSaved to DB — Invoice id: {invoice.id}, "
-        f"PO id: {invoice.po_number}, Vendor id: {invoice.vendor}, "
+        f"PO number (doc): {invoice.po_number}, "
+        f"Matched PO id: {invoice.matched_po_id}, "
+        f"Confidence: {invoice.confidence_score}, "
+        f"Vendor id: {invoice.vendor}, "
         f"Invoice Date: {invoice.date_issued}"
     )
