@@ -125,15 +125,15 @@
 									</div>
 
 									<div
-										class="mt-6 flex items-center justify-center border border-dashed border-gray-200 rounded-lg h-48 text-gray-400"
+										class="mt-6 items-center justify-center border border-dashed border-gray-200 rounded-lg h-48 text-gray-400 max-h-60 overflow-y-auto"
 									>
 										{% if (invoices | length) > 0: %}
-										<table class="text-black text-center text-lg">
-											<tr>
-												<th class="pb-4 font-bold">Vendor</th>
-												<th class="pb-4 font-bold">Date</th>
-												<th class="pb-4 font-bold">Amount</th>
-												<th class="pb-4 font-bold">Status</th>
+										<table class="text-black text-left">
+											<tr class="text-lg">
+												<th class="font-bold pb-4">Vendor</th>
+												<th class="font-bold pb-4">Date</th>
+												<th class="font-bold pb-4">Amount</th>
+												<th class="font-bold pb-4">Status</th>
 											</tr>
 											{% for invoice in invoices %}
 											<tr class="text-sm">
@@ -171,10 +171,10 @@
 								</div>
 
 								<div
-									class="mt-6 flex items-center justify-center border border-dashed border-gray-200 rounded-lg h-48 text-gray-400"
+									class="mt-6 items-center justify-center border border-dashed border-gray-200 rounded-lg h-48 text-gray-400 max-h-60 overflow-y-auto"
 								>
 									{% if (invoices | length) > 0: %}
-									<table class="text-black text-center text-lg">
+									<table class="text-black text-left text-lg">
 										<tr>
 											<th class="pb-4 font-bold">Invoice ID</th>
 											<th class="pb-4 font-bold">PO Number</th>
@@ -210,10 +210,10 @@
 									</div>
 								</div>
 								<div
-									class="mt-6 flex items-center justify-center border border-dashed border-gray-200 rounded-lg h-48 text-gray-400"
+									class="mt-6 items-center justify-center border border-dashed border-gray-200 rounded-lg h-48 text-gray-400 max-h-60 overflow-y-auto"
 								>
 									{% if (purchase_orders | length) > 0: %}
-									<table class="text-black text-center text-lg">
+									<table class="text-black text-left text-lg">
 										<tr>
 											<th class="pb-4 font-bold">PO ID</th>
 											<th class="pb-4 font-bold">Vendor</th>
@@ -275,10 +275,10 @@
 									</div>
 
 									<div
-										class="mt-6 flex items-center justify-center border border-dashed border-gray-200 rounded-lg h-48 text-gray-400"
+										class="mt-6 items-center justify-center border border-dashed border-gray-200 rounded-lg h-48 text-gray-400 max-h-60 overflow-y-auto"
 									>
 										{% if (invoices | length) > 0: %}
-										<table class="text-black text-center text-lg">
+										<table class="text-black text-left text-lg">
 											<tr>
 												<th class="pb-4 font-bold">Invoice ID</th>
 												<th class="pb-4 font-bold">PO Number</th>
