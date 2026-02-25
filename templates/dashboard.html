@@ -39,22 +39,11 @@
           <!--The little boxes on top-->
            <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-5">
 
-             <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
-                <p class="text-sm text-gray-500">Invoices Received Today</p>
-                <p class="text-2xl font-semibold mt-2">{{ invoices|length }}</p>
-             </div>
+            {{ render_little_boxes("Invoices Recieved Today", invoices|length) }}
+            {{ render_little_boxes("Processed", "—") }}
+            {{ render_little_boxes("Failed Extraction", "—") }}
 
-              <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
-                <p class="text-sm text-gray-500">Processed</p>
-                <p class="text-2xl font-semibold mt-2">—</p>
-              </div>
-
-              <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
-                <p class="text-sm text-gray-500">Failed Extraction</p>
-                <p class="text-2xl font-semibold mt-2">—</p>
-              </div>
-
-            </div>
+           </div>
 
           <!-- The larger boxes-->
           <div class="mt-6 grid grid-cols-1 md:grid-cols-5 gap-5">
@@ -109,25 +98,10 @@
           <!--The little boxes on top-->
            <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-5">
 
-             <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
-                <p class="text-sm text-gray-500">Confidence Distribution</p>
-                <p class="text-2xl font-semibold mt-2">—</p>
-             </div>
-
-              <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
-                <p class="text-sm text-gray-500">Queue Status</p>
-                <p class="text-2xl font-semibold mt-2">—</p>
-              </div>
-
-              <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
-                <p class="text-sm text-gray-500">Total Value</p>
-                <p class="text-2xl font-semibold mt-2">—</p>
-              </div>
-
-              <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
-                <p class="text-sm text-gray-500">Performance</p>
-                <p class="text-2xl font-semibold mt-2">—</p>
-              </div>
+             {{ render_little_boxes("Confidence Distribution", "—") }}
+             {{ render_little_boxes("Queue Status", "—") }}
+             {{ render_little_boxes("Total Value", "—") }}
+             {{ render_little_boxes("Performance", "—") }}
 
             </div>
 
@@ -157,7 +131,7 @@
                         <div class="whitespace-nowrap">{{ invoice.po_number }}</div>
                         <div class="truncate min-w-0">{{ invoice.vendor }}</div>
                         <div class="whitespace-nowrap">{{ invoice.amount }}</div>
-                        <div class="whitespace-nowrap text-gray-500">{{ invoice.date }}</div>
+                        <div class="whitespace-nowrap text-gray-500">{{ invoice.date_issued | format_datetime('%m/%d/%Y') }}</div>
                       </div>
                     {% else %}
                       <div class="h-48 flex items-center justify-center text-gray-400">
@@ -175,26 +149,12 @@
 
           <!--The little boxes on top-->
            <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-5">
+              
+              {{ render_little_boxes("Total Processed", "—") }}
+              {{ render_little_boxes("Time Saved", "—") }}
+              {{ render_little_boxes("Matched", "—") }}
+              {{ render_little_boxes("Avg Process Time", "—") }}
 
-             <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
-                <p class="text-sm text-gray-500">Total Processed</p>
-                <p class="text-2xl font-semibold mt-2">—</p>
-             </div>
-
-              <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
-                <p class="text-sm text-gray-500">Time Saved</p>
-                <p class="text-2xl font-semibold mt-2">—</p>
-              </div>
-
-              <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
-                <p class="text-sm text-gray-500">Matched</p>
-                <p class="text-2xl font-semibold mt-2">—</p>
-              </div>
-
-              <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
-                <p class="text-sm text-gray-500">Avg Process Time</p>
-                <p class="text-2xl font-semibold mt-2">—</p>
-              </div>
             </div>
 
             <div class="mt-6 bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
@@ -231,25 +191,11 @@
             <!--The little boxes on top-->
             <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-5">
 
-              <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
-                  <p class="text-sm text-gray-500">Total Suppliers</p>
-                  <p class="text-2xl font-semibold mt-2">—</p>
-              </div>
-
-                <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
-                  <p class="text-sm text-gray-500">Pending Invoices</p>
-                  <p class="text-2xl font-semibold mt-2">—</p>
-                </div>
-
-                <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
-                  <p class="text-sm text-gray-500">Due This Week</p>
-                  <p class="text-2xl font-semibold mt-2">—</p>
-                </div>
-
-                <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
-                  <p class="text-sm text-gray-500">Total Value</p>
-                  <p class="text-2xl font-semibold mt-2">—</p>
-                </div>
+              {{ render_little_boxes("Total Suppliers", "—") }}
+              {{ render_little_boxes("Pending Invoices", "—") }}
+              {{ render_little_boxes("Due This Week", "—") }}
+              {{ render_little_boxes("Total Value", "—") }}
+              
             </div>
 
             <div class="mt-6 bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">

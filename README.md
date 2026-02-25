@@ -19,9 +19,6 @@ Team Copper - Spring 2026
 - .\.venv\Scripts\python.exe -m pip install setuptools==68.0.0
 - pip install pdfplumber
 
-## PDF Parsing Pipeline
-
-Parses a generated invoice PDF and saves the data to the database.
 
 ## Important to do before running anything!
 1. Make sure to delete the app.db file if you have not done so already.
@@ -29,16 +26,21 @@ Parses a generated invoice PDF and saves the data to the database.
 3. Proceed below to run the seeders.
 
 ## How to run seeders:
-There are two options for invoices: 
+
+Run purchase order seeder first, as PO numberss generated on invoices depend on the PO seeder:
+1. python -m seeders.purchase_order_seeder
+2. seeders\load_po_csv.py to load it to db
+
+Then there are two options for invoices: 
 1. For PDFs: python seeders\invoice_pdf_seeder.py
 2. For CSVs: python -m seeders.invoice_csv_seeder
-3. python -m seeders.purchase_order_seeder
 
 ## PDF Parsing Pipeline
 
 Parses a generated invoice PDF and saves the data to the database.
 
 ## How to run
+Manual Run:
 1. Generate a PDF:
    python seeders/invoice_pdf_seeder.py
 
@@ -47,4 +49,12 @@ Parses a generated invoice PDF and saves the data to the database.
 
 3. Repeat until you are happy with how many pdfs are parsed and populated.
 
-4. Use Flask run to check the number of invoices counted on the website.
+4. python run_matching.py to run the matching between invoices and purchase orders
+
+5. Use Flask run to check the number of invoices counted on the website.
+
+Auto Run:
+1. Make sure database is empty (delete app.db, python app.py, exit app)
+2. Run .\setup.ps1
+3. flask run to start the app
+4. Login with tom.ap, check out the invoice versus POs, then run matching, then go WOW!
