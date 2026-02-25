@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect, url_for
 from datetime import date, datetime
 import os
 from extensions import db
@@ -37,6 +37,7 @@ def format_datetime(value, fmt="%m/%d/%Y"):
 app.jinja_env.filters["format_datetime"] = format_datetime
 
 import models
+from po_matching.run_matching import run_matching
 
 
 @app.route("/")
@@ -48,6 +49,12 @@ def home():
 def dashboard():
     invoices = models.Invoice.query.all()
     return render_template("dashboard.html", invoices=invoices)
+
+
+@app.route("/run-matching", methods=["POST"])
+def trigger_matching():
+    run_matching()
+    return redirect(url_for("ap"))
 
 
 @app.route("/ap")

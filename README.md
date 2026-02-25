@@ -40,6 +40,7 @@ Then there are two options for invoices:
 Parses a generated invoice PDF and saves the data to the database.
 
 ## How to run
+Manual Run:
 1. Generate a PDF:
    python seeders/invoice_pdf_seeder.py
 
@@ -51,3 +52,9 @@ Parses a generated invoice PDF and saves the data to the database.
 4. python run_matching.py to run the matching between invoices and purchase orders
 
 5. Use Flask run to check the number of invoices counted on the website.
+
+Auto Run:
+1. Make sure database is empty (delete app.db, python app.py, exit app)
+2. Run .\setup.ps1
+3. flask run to start the app
+4. Login with tom.ap, check out the invoice versus POs, then run matching, then go WOW!
