@@ -19,7 +19,10 @@ def parse_invoice_pdf(filepath):
 
         if line.startswith("PO Number:"):
             raw = line.split(":", 1)[1].strip()
-            po_number = raw  # keep full string
+            try:
+                po_number = int(raw)
+            except ValueError:
+                pass
 
         elif line.startswith("Supplier:"):
             supplier = line.split(":", 1)[1].strip()

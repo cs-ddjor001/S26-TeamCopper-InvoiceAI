@@ -11,7 +11,7 @@ def generate_purchase_orders(n=50):
 
     for _ in range(n):
         purchase_orders.append({
-            "po_number": faker.bothify("PO-####-??"),
+            "po_number": faker.pyint(min_value=100000, max_value=999999),
             "vendor": faker.company(),
             "amount": faker.pyfloat(left_digits=5, right_digits=2, positive=True),
             "date_issued": faker.date_this_year()
