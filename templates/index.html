@@ -26,9 +26,9 @@
 
 <script>
 	const routeByUser = {
-		"sally.admin": "/admin",
+		"sally.admin": "/dashboard",
 		"tom.ap": "/ap",
-		"jim.model": "/model_trainer",
+		//"jim.model": "/model_trainer",
 	};
 
 	document
@@ -45,8 +45,7 @@
 				return;
 			}
 
-			errorEl.textContent =
-				"Unknown username. Try sally.admin, tom.ap, or jim.model.";
+			errorEl.textContent = "Unknown username. Try sally.admin or tom.ap."; //, or jim.model.";
 			errorEl.classList.remove("hidden");
 		});
 </script>
