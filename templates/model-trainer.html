@@ -15,11 +15,7 @@
               <div class="flex border-b bg-gray-50">
 
                 <button class="tab-link px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-800 hover:bg-gray-200 no-underline decoration-transparent border-0 outline-none appearance-none" data-tab-target="#tab-1">
-                    Analytics
-                </button>
-
-                 <button class="tab-link px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-800 hover:bg-gray-200 no-underline decoration-transparent border-0 outline-none appearance-none" data-tab-target="#tab-2">
-                    Configure
+                    Model Overview
                 </button>
     </div>
 
@@ -42,26 +38,39 @@
       <div id="tab-1" class="tab-content block">
 
           <!--The little boxes on top-->
-           <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-5">
+           <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-5">
 
-                {{ render_little_boxes("Total Processed", "—") }}
-                {{ render_little_boxes("Time Saved", "—") }}
-                {{ render_little_boxes("Matched", "—") }}
-                {{ render_little_boxes("Avg Process Time", "—") }}
-
+                {{ render_little_boxes("Base Model", "LFM2.5-VL-1.6B") }}
+                {{ render_little_boxes("Model Size", "1.6B parameters") }}
+                {{ render_little_boxes("Max Sequence Length", "32K tokens") }}  <!-- Maximum tokens per training -->
+                
                 <div class=" bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
-                    <h2 class="text-lg font-semibold text-gray-900">Confidence Scoring</h2>
+                    <h2 class="text-lg font-semibold text-gray-900">Training Parameters</h2>
 
-                    {{ render_sub_containers("Avg Confidence Score", "—") }}
-                    {{ render_sub_containers("Highest Confidence Score", "—") }}
-                    {{ render_sub_containers("Lowest Confidence Score", "—") }}
+                    {{ render_sub_containers("Number of Epochs", "—") }}
+                    {{ render_sub_containers("Batch Size", "—") }}
+                    {{ render_sub_containers("Gradient Accumulation", "—") }} <!-- Batch Size Multiplier-->
+                    {{ render_sub_containers("Effective Batch Size", "—") }} <!-- batch * accumulation -->
 
                 </div>
 
                 
               <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
-                <p class="text-sm text-gray-500">Number of Epochs</p>
-                <p class="text-2xl font-semibold mt-2">—</p>
+                <h2 class="text-lg font-semibold text-gray-900">Dataset Configuration</h2>
+
+                    {{ render_sub_containers("Dataset Name", "—") }}
+                    {{ render_sub_containers("Number of Samples", "—") }} 
+                    {{ render_sub_containers("Evaluation Split", "—") }} 
+
+              </div>
+
+               <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
+                <h2 class="text-lg font-semibold text-gray-900">Metrics</h2>
+
+                    {{ render_sub_containers("Training Duration", "—") }} <!-- num epochs -->
+                    {{ render_sub_containers("Total Training Samples", "—") }} <!-- dataset size * epochs-->
+                    {{ render_sub_containers("Estimated Training Time", "—") }} <!-- throughput * epochs maybe?-->
+
               </div>
 
             </div> 
