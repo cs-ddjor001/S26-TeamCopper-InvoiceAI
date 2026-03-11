@@ -1,0 +1,154 @@
+import base64
+import json
+import os
+import re
+
+import fitz  # PyMuPDF
+from openai import OpenAI, APIConnectionError
+
+from .base import InvoiceExtractor
+
+SYSTEM_PROMPT = """\
+You are an invoice data extraction assistant. You will be given an image of an \
+invoice. Extract the following fields and return ONLY valid JSON with no \
+additional text, no markdown fences, and no explanation.
+
+Required JSON structure:
+{
+  "invoice_number": "string or null",
+  "vendor_name": "string or null",
+  "date": "string in YYYY-MM-DD format or null",
+  "line_items": [
+    {
+      "description": "string",
+      "quantity": number,
+      "unit_price": number,
+      "total": number
+    }
+  ],
+  "subtotal": number or null,
+  "tax": number or null,
+  "total": number or null,
+  "po_number": "string or null"
+}
+
+Rules:
+- All monetary values should be numbers (not strings). Remove currency symbols.
+- If a field is not present on the invoice, set it to null.
+- If there are no line items, return an empty list for "line_items".
+- Return ONLY the JSON object. No extra text.\
+"""
+
+USER_PROMPT = "Extract all invoice data from this image and return it as JSON."
+
+DEFAULT_BASE_URL = "http://localhost:8080/v1"
+
+
+class LiquidExtractor(InvoiceExtractor):
+    """Extracts invoice data using the Liquid AI vision model (LFM2.5-VL)
+    served locally via llama-server's OpenAI-compatible API."""
+
+    def __init__(self, base_url: str | None = None, model: str = "liquid"):
+        self.base_url = base_url or os.environ.get(
+            "LLAMA_SERVER_URL", DEFAULT_BASE_URL
+        )
+        self.model = model
+        self.client = OpenAI(base_url=self.base_url, api_key="not-needed")
+
+    def extract(self, pdf_path: str) -> dict:
+        """Extract structured invoice data from a PDF using the vision model.
+
+        Args:
+            pdf_path: Path to the PDF invoice file.
+
+        Returns:
+            Dict with extracted invoice fields.
+
+        Raises:
+            FileNotFoundError: If the PDF file does not exist.
+            ConnectionError: If the llama-server is not reachable.
+            ValueError: If the model response cannot be parsed as JSON.
+        """
+        if not os.path.isfile(pdf_path):
+            raise FileNotFoundError(f"PDF not found: {pdf_path}")
+
+        image_b64 = self._pdf_to_base64_image(pdf_path)
+        raw_response = self._call_model(image_b64)
+        return self._parse_response(raw_response)
+
+    def _pdf_to_base64_image(self, pdf_path: str) -> str:
+        """Convert the first page of a PDF to a base64-encoded PNG string."""
+        doc = fitz.open(pdf_path)
+        page = doc.load_page(0)
+        # Render at 2x resolution for better OCR quality
+        pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))
+        png_bytes = pix.tobytes("png")
+        doc.close()
+        return base64.b64encode(png_bytes).decode("utf-8")
+
+    def _call_model(self, image_b64: str) -> str:
+        """Send the image to the vision model and return the raw text response."""
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/png;base64,{image_b64}"
+                                },
+                            },
+                            {
+                                "type": "text",
+                                "text": USER_PROMPT,
+                            },
+                        ],
+                    },
+                ],
+                temperature=0.1,
+                max_tokens=2048,
+            )
+        except APIConnectionError:
+            raise ConnectionError(
+                f"Cannot connect to llama-server at {self.base_url}. "
+                "Make sure llama-server is running."
+            )
+
+        return response.choices[0].message.content
+
+    @staticmethod
+    def _parse_response(raw: str) -> dict:
+        """Parse the model's response text into a structured dict.
+
+        Handles cases where the model wraps JSON in markdown code fences
+        or includes extra text around the JSON object.
+        """
+        # Try direct parse first
+        try:
+            return json.loads(raw)
+        except json.JSONDecodeError:
+            pass
+
+        # Strip markdown code fences: ```json ... ``` or ``` ... ```
+        fenced = re.search(r"```(?:json)?\s*\n?(.*?)\n?\s*```", raw, re.DOTALL)
+        if fenced:
+            try:
+                return json.loads(fenced.group(1))
+            except json.JSONDecodeError:
+                pass
+
+        # Try to find any JSON object in the text
+        brace_match = re.search(r"\{.*\}", raw, re.DOTALL)
+        if brace_match:
+            try:
+                return json.loads(brace_match.group(0))
+            except json.JSONDecodeError:
+                pass
+
+        raise ValueError(
+            f"Could not parse model response as JSON. Raw response:\n{raw}"
+        )

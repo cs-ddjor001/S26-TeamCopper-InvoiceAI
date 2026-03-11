@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C /c/Users/didym/CS411W/S26-TeamCopper-InvoiceAI log --name-only --oneline)",
+      "Bash(git -C /c/Users/didym/CS411W/S26-TeamCopper-InvoiceAI ls-files:*)",
+      "Bash(git -C /c/Users/didym/CS411W/S26-TeamCopper-InvoiceAI ls-tree:*)",
+      "Bash(ls -la /c/Users/didym/CS411W/S26-TeamCopper-InvoiceAI/*.txt /c/Users/didym/CS411W/S26-TeamCopper-InvoiceAI/*.toml)",
+      "Bash(wc -l /c/Users/didym/CS411W/S26-TeamCopper-InvoiceAI/templates/*.html /c/Users/didym/CS411W/S26-TeamCopper-InvoiceAI/models/*.py)"
+    ]
+  }
+}
