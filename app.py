@@ -65,6 +65,9 @@ def ap():
         "ap.html", invoices=invoices, purchase_orders=purchase_orders
     )
 
+@app.route("/model-trainer")
+def model_trainer():
+    return render_template("model-trainer.html")
 
 if __name__ == "__main__":
     with app.app_context():

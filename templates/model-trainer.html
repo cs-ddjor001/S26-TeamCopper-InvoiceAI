@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="bg-gray-50">
+  <div class="max-w-8xl mx-auto px-6 py-8">
+      <div>
+        <h1 class="text-2xl font-semibold text-gray-900">Invoice Processing System</h1>
+        <p class="text-gray-600 mt-1">Upload, extract, and match invoices with purchase orders</p>
+    
+        <nav class="mt-5 w-full ">
+          <div class="max-w-8xl mx-auto bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 mt-10">
+              <div class="flex border-b bg-gray-50">
+
+                <button class="tab-link px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-800 hover:bg-gray-200 no-underline decoration-transparent border-0 outline-none appearance-none" data-tab-target="#tab-1">
+                    Model Overview
+                </button>
+    </div>
+
+{% macro render_little_boxes(title, content="text") %}
+    <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
+      <p class="text-sm text-gray-500">{{ title }}</p>
+      <p class="text-2xl font-semibold mt-2">{{ content }}</p>
+    </div>
+{% endmacro %}
+
+{% macro render_sub_containers(title, content="text") %}
+    <div class="mt-6 flex items-center justify-center border border-dashed border-gray-200 rounded-lg h-10 text-black-400">
+      <p>{{ title }}: {{ content }}</p>
+     </div>
+{% endmacro %}
+
+    <div class="p-6">
+
+      <!--Tab 1 Content-->
+      <div id="tab-1" class="tab-content block">
+
+          <!--The little boxes on top-->
+           <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-5">
+
+                {{ render_little_boxes("Base Model", "LFM2.5-VL-1.6B") }}
+                {{ render_little_boxes("Model Size", "1.6B parameters") }}
+                {{ render_little_boxes("Max Sequence Length", "32K tokens") }}  <!-- Maximum tokens per training -->
+                
+                <div class=" bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
+                    <h2 class="text-lg font-semibold text-gray-900">Training Parameters</h2>
+
+                    {{ render_sub_containers("Number of Epochs", "—") }}
+                    {{ render_sub_containers("Batch Size", "—") }}
+                    {{ render_sub_containers("Gradient Accumulation", "—") }} <!-- Batch Size Multiplier-->
+                    {{ render_sub_containers("Effective Batch Size", "—") }} <!-- batch * accumulation -->
+
+                </div>
+
+                
+              <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
+                <h2 class="text-lg font-semibold text-gray-900">Dataset Configuration</h2>
+
+                    {{ render_sub_containers("Dataset Name", "—") }}
+                    {{ render_sub_containers("Number of Samples", "—") }} 
+                    {{ render_sub_containers("Evaluation Split", "—") }} 
+
+              </div>
+
+               <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
+                <h2 class="text-lg font-semibold text-gray-900">Metrics</h2>
+
+                    {{ render_sub_containers("Training Duration", "—") }} <!-- num epochs -->
+                    {{ render_sub_containers("Total Training Samples", "—") }} <!-- dataset size * epochs-->
+                    {{ render_sub_containers("Estimated Training Time", "—") }} <!-- throughput * epochs maybe?-->
+
+              </div>
+
+            </div> 
+            </div>
+
+             <!--Tab 2 Content-->
+            <div id="tab-2" class="tab-content block">
+
+            <!--The little boxes on top-->
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-5">
+
+                {{ render_little_boxes("Retraining Cadence", "—") }}
+                {{ render_little_boxes("Batch Size", "—") }}
+                {{ render_little_boxes("Select Dataset", "—") }}
+                {{ render_little_boxes("Version", "—") }}
+
+            </div>
+            
+        </div>
+    </div> <!-- end tabs -->    
+  </div> <!-- end card -->
+
+  <a href="/"
+     class="mt-6 inline-flex items-center px-4 py-2 text-sm font-medium rounded-md bg-white text-gray-900 shadow-sm ring-1 ring-gray-200 hover:bg-gray-50 no-underline decoration-transparent border-0 outline-none appearance-none">
+     Back to Home
+  </a>
+</div>
+</div>
+
+<script>
+    const tabs = document.querySelectorAll('.tab-link');
+    const contents = document.querySelectorAll('.tab-content');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const target = document.querySelector(tab.dataset.tabTarget);
+
+            //Hide content
+            contents.forEach(content => content.classList.add('hidden'));
+            tabs.forEach(t => {
+                t.classList.remove('border-blue-500', 'text-blue-600');
+                t.classList.add('border-transparent', 'text-gray-500');
+            });
+
+            //Active content
+            target.classList.remove('hidden');
+            tab.classList.add('border-blue-500', 'text-blue-600');
+            tab.classList.remove('border-transparent', 'text-gray-500');
+        });
+    });
+
+  document.querySelector('.tab-link').click();
+</script>
+
+{% endblock %}
+
+
+
+<!--TODO:
+    -Graph for AI2's outputs vs ongoing company expectations/ projected metrics?
+    -Epochs?
+    -Learning Rate?
+--->
