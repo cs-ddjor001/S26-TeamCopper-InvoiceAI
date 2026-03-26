@@ -189,7 +189,10 @@
 												<th class="pb-4 font-bold">Date Issued</th>
 											</tr>
 											{% for invoice in invoices %}
-											<tr>
+											<tr class="cursor-pointer hover:bg-gray-100"
+    											data-invoice-id="{{ invoice.id }}"
+    											data-po-id="{{ invoice.matched_po_id }}"
+    											data-pdf-url="/invoice-pdf/{{ invoice.id }}">
 												<td>{{ invoice.id }}</td>
 												<td>{{ invoice.po_number }}</td>
 												<td>
@@ -228,7 +231,7 @@
 									>
 										{% if (purchase_orders | length) > 0: %}
 										<table class="text-black text-left text-lg">
-											<tr>
+											<tr id="po-{{ po.id }}" class="po-row">
 												<th class="pb-4 font-bold">PO ID</th>
 												<th class="pb-4 font-bold">PO Number</th>
 												<th class="pb-4 font-bold">Vendor</th>
@@ -249,6 +252,14 @@
 										</table>
 										{% else %} No outstanding purchase orders. {% endif %}
 									</div>
+								</div>
+								<div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6 mt-4">
+   									<h2 class="text-lg font-semibold text-gray-900">Invoice Preview</h2>
+
+									<iframe id="pdf-viewer"
+       							     class="w-full h-96 mt-4 border rounded-lg"
+   							         src="">
+								    </iframe>
 								</div>
 							</div>
 						</div>
@@ -358,6 +369,73 @@
 					});
 
 					document.querySelector(".tab-link").click();
+
+					document.querySelectorAll("#tab-2 tr[data-invoice-id]").forEach(row => {
+						row.addEventListener("click", () => {
+							const poId = row.dataset.poId;
+							const pdfUrl = row.dataset.pdfUrl;
+
+							document.querySelectorAll("#tab-2 tr").forEach(r => {
+								r.classList.remove("bg-blue-100");
+							});
+							row.classList.add("bg-blue-100");
+
+							document.querySelectorAll(".po-row").forEach(po => {
+								po.classList.remove("bg-green-100");
+							});
+
+							if (poId) {
+								const targetPO = document.getElementById(`po-${poId}`);
+								if (targetPO) {
+									targetPO.classList.add("bg-green-100");
+									targetPO.scrollIntoView({ behavior: "smooth", block: "center" });
+								}
+							}
+
+							const viewer = document.getElementById("pdf-viewer");
+							if (pdfUrl) {
+								viewer.src = pdfUrl;
+							} else {
+								viewer.src = "";
+							}
+						});
+					});
+
+					document.querySelectorAll("#tab-2 tr[data-invoice-id]").forEach(row => {
+						row.addEventListener("click", () => {
+							const poId = row.dataset.poId;
+							const pdfUrl = row.dataset.pdfUrl;
+
+							document.querySelectorAll("#tab-2 tr").forEach(r => {
+								r.classList.remove("bg-blue-100");
+							});
+							row.classList.add("bg-blue-100");
+
+							document.querySelectorAll(".po-row").forEach(po => {
+								if (po.id === `po-${poId}`) {
+									po.style.display = "";
+								} else {
+									po.style.display = "none";
+								}
+							});
+
+							if (poId) {
+								const targetPO = document.getElementById(`po-${poId}`);
+								if (targetPO) {
+									targetPO.classList.add("bg-green-100");
+									targetPO.scrollIntoView({ behavior: "smooth", block: "center" });
+								}
+							}
+
+							const viewer = document.getElementById("pdf-viewer");
+							if (pdfUrl) {
+								viewer.src = pdfUrl;
+							} else {
+								viewer.src = "";
+							}
+						});
+					});
+
 				</script>
 
 				{% endblock %}

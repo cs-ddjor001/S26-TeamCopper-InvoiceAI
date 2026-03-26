@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template, redirect, url_for, send_from_directory
 from datetime import date, datetime
 import os
 from extensions import db
@@ -64,6 +64,18 @@ def ap():
     return render_template(
         "ap.html", invoices=invoices, purchase_orders=purchase_orders
     )
+
+
+@app.route('/invoice-pdf/<int:invoice_id>')
+def get_invoice_pdf(invoice_id):
+    directory = os.path.join(app.root_path, 'data')
+    filename = f"sample_{invoice_id}.pdf"
+    filepath = os.path.join(directory, filename)
+
+    if not os.path.exists(filepath):
+        return "", 404  # or return a default PDF
+
+    return send_from_directory(directory, filename)
 
 
 if __name__ == "__main__":
