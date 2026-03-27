@@ -1,4 +1,5 @@
 import base64
+from datetime import datetime
 import json
 import os
 import re
@@ -72,9 +73,29 @@ class LiquidExtractor(InvoiceExtractor):
         if not os.path.isfile(pdf_path):
             raise FileNotFoundError(f"PDF not found: {pdf_path}")
 
-        image_b64 = self._pdf_to_base64_image(pdf_path)
-        raw_response = self._call_model(image_b64)
-        return self._parse_response(raw_response)
+        image_b64 = self._pdf_to_base64_image(pdf_path) #pdf to image
+        raw_response = self._call_model(image_b64) #image to ai model
+        data = self._parse_response(raw_response)  #make response json
+        self._save_json(data, pdf_path)           
+        return data                                
+
+    def _save_json(self, data: dict, pdf_path: str): 
+        """Save extracted JSON to file."""
+        os.makedirs("./data/json_output", exist_ok=True)
+
+        base_name = os.path.splitext(os.path.basename(pdf_path))[0]
+        invoice_number = data.get("invoice_number")
+
+        if invoice_number:
+            filename = f"{invoice_number}.json"
+        else:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"{base_name}_{timestamp}.json"
+
+        filepath = os.path.join("./data/json_output", filename)
+
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4) 
 
     def _pdf_to_base64_image(self, pdf_path: str) -> str:
         """Convert the first page of a PDF to a base64-encoded PNG string."""
