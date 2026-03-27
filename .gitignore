@@ -32,9 +32,13 @@ __pycache__/
 *.db
 
 # Dummy data files
-data/*
-*.pdf
+data/seeder_po_data/*
+data/seeder_invoice_data/*
+
 
 # Tailwind 
 tailwindcss.exe
-static/src/output.css 
+static/src/output.css
+
+# AI models
+ai_models/

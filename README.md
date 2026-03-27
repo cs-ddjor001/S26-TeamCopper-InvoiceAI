@@ -19,6 +19,9 @@ Team Copper - Spring 2026
 - .\.venv\Scripts\python.exe -m pip install setuptools==68.0.0
 - pip install pdfplumber
 
+- can run pip install -r requirements.txt to check all dependencies
+- two more were added, openai for the API and PyMuPDF for pdf to image conversion
+
 
 ## Important to do before running anything!
 1. Make sure to delete the app.db file if you have not done so already.
@@ -58,3 +61,23 @@ Auto Run:
 2. Run .\setup.ps1
 3. flask run to start the app
 4. Login with tom.ap, check out the invoice versus POs, then run matching, then go WOW!
+
+## Liquid AI Invoice Extraction (Vision Model)
+
+Uses the Liquid AI LFM2.5-VL-1.6B vision model to extract structured
+data from invoice PDFs via a locally-running llama-server.
+
+### Prerequisites
+Steps to setup own llama server:
+1. Have llama.cpp installed (winget install llama.cpp)
+2. Download the models from https://huggingface.co/LiquidAI/LFM2.5-VL-1.6B-GGUF/tree/main
+- LFM2.5-VL-1.6B-Q8_0.gguf - main model
+- mmproj-LFM2.5-VL-1.6b-Q8_0.gguf - “eyes” of model that reads the images
+3. in directory w/ the models downloaded, run this to start the server:
+llama-server --model LFM2.5-VL-1.6B-Q8_0.gguf --mmproj mmproj-LFM2.5-VL-1.6b-Q8_0.gguf --port 8080
+
+### Usage
+   python test_extraction.py data/sample_1.pdf
+
+To use a different server address, set the environment variable:
+   set LLAMA_SERVER_URL=http://localhost:9090/v1
