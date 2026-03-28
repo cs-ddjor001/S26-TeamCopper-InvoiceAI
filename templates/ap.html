@@ -118,13 +118,13 @@
 										</div>
 										<div></div>
 										<form method="POST" action="/run-matching">
-										<button
-											type="submit"
-											class="bg-gray-900 hover:bg-black text-white font-medium px-5 py-3 rounded-lg border-0 outline-none appearance-none"
-										>
-											Run Matching
-										</button>
-									</form>
+											<button
+												type="submit"
+												class="bg-gray-900 hover:bg-black text-white font-medium px-5 py-3 rounded-lg border-0 outline-none appearance-none"
+											>
+												Run Matching
+											</button>
+										</form>
 									</div>
 
 									<div
@@ -158,87 +158,128 @@
 
 						<!--Tab 2 Content-->
 						<div id="tab-2" class="tab-content block">
-							<!--The Review Queue-->
-							<div
-								class="md:col-span-4 bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6 mb-4"
-							>
-								<div class="flex items-start justify-between">
-									<div>
-										<h2 class="text-lg font-semibold text-gray-900">
-											Review Queue
-										</h2>
-										<p class="text-sm text-gray-500 mt-1">
-											Invoices ready for review and matching
+							<div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-5">
+								<!--The Review Queue-->
+								<div
+									class="md:col-span-4 bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6 mb-4"
+								>
+									<div class="flex items-start justify-between">
+										<div>
+											<h2 class="text-lg font-semibold text-gray-900">
+												Review Queue
+											</h2>
+											<p class="text-sm text-gray-500 mt-1">
+												Invoices ready for review and matching
+											</p>
+										</div>
+									</div>
+
+									<div
+										class="mt-6 items-center justify-center border border-dashed border-gray-200 rounded-lg h-48 text-gray-400 max-h-60 overflow-y-auto"
+									>
+										{% if (invoices | length) > 0: %}
+										<table class="text-black text-left text-lg">
+											<tr>
+												<th class="pb-4 font-bold">Invoice ID</th>
+												<th class="pb-4 font-bold">PO Number</th>
+												<th class="pb-4 font-bold">Matched PO ID</th>
+												<th class="pb-4 font-bold">Confidence</th>
+												<th class="pb-4 font-bold">Vendor</th>
+												<th class="pb-4 font-bold">Amount</th>
+												<th class="pb-4 font-bold">Date Issued</th>
+											</tr>
+											{% for invoice in invoices %}
+											<tr
+												class="cursor-pointer hover:bg-gray-100"
+												data-invoice-id="{{ invoice.id }}"
+												data-po-id="{{ invoice.matched_po_id if invoice.matched_po_id is not none else '' }}"
+												data-po-number="{{ invoice.po_number if invoice.po_number is not none else '' }}"
+												data-pdf-url="/invoice-pdf/{{ invoice.id }}"
+											>
+												<td>{{ invoice.id }}</td>
+												<td>{{ invoice.po_number }}</td>
+												<td>
+													{{ invoice.matched_po_id if invoice.matched_po_id is
+													not none else "—" }}
+												</td>
+												<td>
+													{{ invoice.confidence_score if
+													invoice.confidence_score is not none else "—" }}
+												</td>
+												<td>{{ invoice.vendor }}</td>
+												<td>{{ invoice.amount }}</td>
+												<td>
+													{{invoice.date_issued | format_datetime('%m/%d/%Y')}}
+												</td>
+											</tr>
+											{% endfor %}
+										</table>
+										{% else %} No invoices available for review. {% endif %}
+									</div>
+								</div>
+
+								<div
+									class="md:col-span-4 bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6 mb-4"
+								>
+									<div class="flex items-start justify-between">
+										<div>
+											<h2 class="text-lg font-semibold text-gray-900">
+												Purchase Orders
+											</h2>
+											<p class="text-sm text-gray-500 mt-1">Outstanding POs</p>
+										</div>
+									</div>
+									<div
+										class="mt-6 items-center justify-center border border-dashed border-gray-200 rounded-lg h-48 text-gray-400 max-h-60 overflow-y-auto"
+									>
+										{% if (purchase_orders | length) > 0: %}
+										<table class="text-black text-left text-lg">
+											<tr>
+												<th class="pb-4 font-bold">PO ID</th>
+												<th class="pb-4 font-bold">PO Number</th>
+												<th class="pb-4 font-bold">Vendor</th>
+												<th class="pb-4 font-bold">Amount</th>
+												<th class="pb-4 font-bold">Date Issued</th>
+											</tr>
+											{% for po in purchase_orders %}
+											<tr
+												id="po-{{ po.id }}"
+												class="po-row"
+												data-po-number="{{ po.po_number }}"
+											>
+												<td>{{ po.id }}</td>
+												<td>{{ po.po_number }}</td>
+												<td>{{ po.vendor }}</td>
+												<td>{{ po.amount }}</td>
+												<td>
+													{{po.date_issued | format_datetime('%m/%d/%Y')}}
+												</td>
+											</tr>
+											{% endfor %}
+										</table>
+										<p
+											id="po-empty-message"
+											class="hidden mt-4 text-sm text-amber-700"
+										>
+											No corresponding purchase order found for the selected
+											invoice.
 										</p>
-									</div>
-								</div>
-
-								<div
-									class="mt-6 items-center justify-center border border-dashed border-gray-200 rounded-lg h-48 text-gray-400 max-h-60 overflow-y-auto"
-								>
-									{% if (invoices | length) > 0: %}
-									<table class="text-black text-left text-lg">
-										<tr>
-											<th class="pb-4 font-bold">Invoice ID</th>
-											<th class="pb-4 font-bold">PO Number</th>
-											<th class="pb-4 font-bold">Matched PO ID</th>
-											<th class="pb-4 font-bold">Confidence</th>
-											<th class="pb-4 font-bold">Vendor</th>
-											<th class="pb-4 font-bold">Amount</th>
-											<th class="pb-4 font-bold">Date Issued</th>
-										</tr>
-										{% for invoice in invoices %}
-										<tr>
-											<td>{{ invoice.id }}</td>
-											<td>{{ invoice.po_number }}</td>
-											<td>{{ invoice.matched_po_id if invoice.matched_po_id is not none else "—" }}</td>
-											<td>{{ invoice.confidence_score if invoice.confidence_score is not none else "—" }}</td>
-											<td>{{ invoice.vendor }}</td>
-											<td>{{ invoice.amount }}</td>
-											<td>
-												{{invoice.date_issued | format_datetime('%m/%d/%Y')}}
-											</td>
-										</tr>
-										{% endfor %}
-									</table>
-									{% else %} No invoices available for review. {% endif %}
-								</div>
-							</div>
-
-							<div
-								class="md:col-span-4 bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6"
-							>
-								<div class="flex items-start justify-between">
-									<div>
-										<h2 class="text-lg font-semibold text-gray-900">
-											Purchase Orders
-										</h2>
-										<p class="text-sm text-gray-500 mt-1">Outstanding POs</p>
+										{% else %} No outstanding purchase orders. {% endif %}
 									</div>
 								</div>
 								<div
-									class="mt-6 items-center justify-center border border-dashed border-gray-200 rounded-lg h-48 text-gray-400 max-h-60 overflow-y-auto"
+									class="md:col-span-4 bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6 mt-4"
 								>
-									{% if (purchase_orders | length) > 0: %}
-									<table class="text-black text-left text-lg">
-										<tr>
-											<th class="pb-4 font-bold">PO ID</th>
-											<th class="pb-4 font-bold">PO Number</th>
-											<th class="pb-4 font-bold">Vendor</th>
-											<th class="pb-4 font-bold">Amount</th>
-											<th class="pb-4 font-bold">Date Issued</th>
-										</tr>
-										{% for po in purchase_orders %}
-										<tr>
-											<td>{{ po.id }}</td>
-											<td>{{ po.po_number }}</td>
-											<td>{{ po.vendor }}</td>
-											<td>{{ po.amount }}</td>
-											<td>{{po.date_issued | format_datetime('%m/%d/%Y')}}</td>
-										</tr>
-										{% endfor %}
-									</table>
-									{% else %} No outstanding purchase orders. {% endif %}
+									<h2 class="text-lg font-semibold text-gray-900">
+										Invoice Preview
+									</h2>
+
+									<iframe
+										id="pdf-viewer"
+										class="w-full h-96 mt-4 border rounded-lg"
+										src=""
+									>
+									</iframe>
 								</div>
 							</div>
 						</div>
@@ -328,6 +369,11 @@
 				<script>
 					const tabs = document.querySelectorAll(".tab-link");
 					const contents = document.querySelectorAll(".tab-content");
+					const invoiceRows = document.querySelectorAll(
+						"#tab-2 tr[data-invoice-id]",
+					);
+					const poRows = document.querySelectorAll(".po-row");
+					const poEmptyMessage = document.getElementById("po-empty-message");
 
 					tabs.forEach((tab) => {
 						tab.addEventListener("click", () => {
@@ -348,6 +394,51 @@
 					});
 
 					document.querySelector(".tab-link").click();
+
+					invoiceRows.forEach((row) => {
+						row.addEventListener("click", () => {
+							const poId = row.dataset.poId;
+							const poNumber = row.dataset.poNumber;
+							const pdfUrl = row.dataset.pdfUrl;
+
+							invoiceRows.forEach((invoiceRow) => {
+								invoiceRow.classList.remove("bg-blue-100");
+							});
+							row.classList.add("bg-blue-100");
+
+							poRows.forEach((poRow) => {
+								poRow.classList.remove("bg-green-100");
+								poRow.style.display = "none";
+							});
+
+							let targetPO = poId
+								? document.getElementById(`po-${poId}`)
+								: null;
+
+							if (!targetPO && poNumber) {
+								targetPO = document.querySelector(
+									`.po-row[data-po-number="${poNumber}"]`,
+								);
+							}
+
+							if (targetPO) {
+								targetPO.style.display = "";
+								targetPO.classList.add("bg-green-100");
+								if (poEmptyMessage) {
+									poEmptyMessage.classList.add("hidden");
+								}
+								targetPO.scrollIntoView({
+									behavior: "smooth",
+									block: "center",
+								});
+							} else if (poEmptyMessage) {
+								poEmptyMessage.classList.remove("hidden");
+							}
+
+							const viewer = document.getElementById("pdf-viewer");
+							viewer.src = pdfUrl || "";
+						});
+					});
 				</script>
 
 				{% endblock %}
