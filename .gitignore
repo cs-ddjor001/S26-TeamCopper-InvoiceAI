@@ -34,7 +34,8 @@ __pycache__/
 # Dummy data files
 data/seeder_po_data/*
 data/seeder_invoice_data/*
-
+data/*.pdf
+data/*.csv
 
 # Tailwind 
 tailwindcss.exe
