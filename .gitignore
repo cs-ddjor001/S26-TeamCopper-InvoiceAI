@@ -31,9 +31,9 @@ __pycache__/
 # Database files
 *.db
 
-# Dummy data files
-data/seeder_po_data/*
-data/seeder_invoice_data/*
+# ADS Dummy data files
+data/
+data/*
 
 
 # Tailwind 
