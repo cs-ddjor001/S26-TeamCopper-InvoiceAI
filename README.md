@@ -1,83 +1,95 @@
-Team Copper - Spring 2026
+# InvoiceAI — Team Copper, Spring 2026
 
-# Members
+## Members
 
-  - cs-ddjor001 - Dusan Djordjevic - ddjor001@odu.edu
-  - cmjgrubb - Craig Grubb - cgrub002@odu.edu
-  - juuliannd41 - Julian Diaz - jdiaz037@odu.edu
-  - MichaelNimitz1995 - Michael Nimitza - mnimi001@odu.edu
-  - MinMin5843 - Lynda Salinas Ascanova - lsali002@odu.edu
-  - qelson - Quin Elson - qelso001@odu.edu
-  - stodd009 - Savannah Todd - stodd009@odu.edu
-  - tfull013 - Tommy Fuller - tfull013@odu.edu
+| GitHub | Name | Email |
+|---|---|---|
+| cs-ddjor001 | Dusan Djordjevic | ddjor001@odu.edu |
+| cmjgrubb | Craig Grubb | cgrub002@odu.edu |
+| juuliannd41 | Julian Diaz | jdiaz037@odu.edu |
+| MichaelNimitz1995 | Michael Nimitza | mnimi001@odu.edu |
+| MinMin5843 | Lynda Salinas Ascanova | lsali002@odu.edu |
+| qelson | Quin Elson | qelso001@odu.edu |
+| stodd009 | Savannah Todd | stodd009@odu.edu |
+| tfull013 | Tommy Fuller | tfull013@odu.edu |
 
-## Install the following first before running any seeders:
-- in .venv (virtual environment)
-- pip install Flask-Seeder
-- pip install Faker
-- pip install reportlab (pdf gen.)
-- .\.venv\Scripts\python.exe -m pip install setuptools==68.0.0
-- pip install pdfplumber
+---
 
-- can run pip install -r requirements.txt to check all dependencies
-- two more were added, openai for the API and PyMuPDF for pdf to image conversion
+## Setup
 
+### 1. Create and activate a virtual environment
 
-## Important to do before running anything!
-1. Make sure to delete the app.db file if you have not done so already.
-2. Run python app.py to create a new app.db with updated tables.
-3. Proceed below to run the seeders.
+```bash
+python -m venv .venv
 
-## How to run seeders:
+# Windows
+.\.venv\Scripts\activate
 
-Run purchase order seeder first, as PO numberss generated on invoices depend on the PO seeder:
-1. python -m seeders.purchase_order_seeder
-2. seeders\load_po_csv.py to load it to db
+# macOS/Linux
+source .venv/bin/activate
+```
 
-Then there are two options for invoices: 
-1. For PDFs: python seeders\invoice_pdf_seeder.py
-2. For CSVs: python -m seeders.invoice_csv_seeder
+### 2. Install dependencies
 
-## PDF Parsing Pipeline
+```bash
+pip install -r requirements.txt
+```
 
-Parses a generated invoice PDF and saves the data to the database.
+### 3. Delete your old database (if you have one)
 
-## How to run
-Manual Run:
-1. Generate a PDF:
-   python seeders/invoice_pdf_seeder.py
+```bash
+# Just delete app.db from the project root
+```
 
-2. Parse it into the database:
-   python parse_pdf.py data/sample_#.pdf (replace # with any number from 1-50).
+The database is not committed to the repo. If you have a stale `app.db` from a previous session, delete it before continuing.
 
-3. Repeat until you are happy with how many pdfs are parsed and populated.
+### 4. Load PO data — this creates the database
 
-4. python run_matching.py to run the matching between invoices and purchase orders
+```bash
+python Purchase_order_writer/load_po_csv.py
+```
 
-5. Use Flask run to check the number of invoices counted on the website.
+This is the required first step. It creates all database tables and loads the real ADS purchase order data from `data/ADS POs csvs/`. The app cannot run meaningfully without POs in the database.
 
-Auto Run:
-1. Make sure database is empty (delete app.db, python app.py, exit app)
-2. Run .\setup.ps1
-3. flask run to start the app
-4. Login with tom.ap, check out the invoice versus POs, then run matching, then go WOW!
+### 5. Run the app
+
+```bash
+python app.py
+# or
+flask run
+```
+
+---
 
 ## Liquid AI Invoice Extraction (Vision Model)
 
-Uses the Liquid AI LFM2.5-VL-1.6B vision model to extract structured
-data from invoice PDFs via a locally-running llama-server.
+Uses the Liquid AI LFM2.5-VL-1.6B vision model to extract structured data from invoice PDFs via a locally-running llama-server.
 
 ### Prerequisites
-Steps to setup own llama server:
-1. Have llama.cpp installed (winget install llama.cpp)
-2. Download the models from https://huggingface.co/LiquidAI/LFM2.5-VL-1.6B-GGUF/tree/main
-- LFM2.5-VL-1.6B-Q8_0.gguf - main model
-- mmproj-LFM2.5-VL-1.6b-Q8_0.gguf - “eyes” of model that reads the images
-3. in directory w/ the models downloaded, run this to start the server:
-llama-server --model LFM2.5-VL-1.6B-Q8_0.gguf --mmproj mmproj-LFM2.5-VL-1.6b-Q8_0.gguf --port 8080
+
+1. Install llama.cpp:
+   ```bash
+   winget install llama.cpp
+   ```
+
+2. Download the models from HuggingFace (LiquidAI/LFM2.5-VL-1.6B-GGUF):
+   - `LFM2.5-VL-1.6B-Q8_0.gguf` — main vision model
+   - `mmproj-LFM2.5-VL-1.6b-Q8_0.gguf` — multimodal projector ("eyes" that read images)
+
+   Place both in the `ai_models/` directory.
+
+3. Start the llama server:
+   ```bash
+   llama-server --model ai_models/LFM2.5-VL-1.6B-Q8_0.gguf --mmproj ai_models/mmproj-LFM2.5-VL-1.6b-Q8_0.gguf --port 8080
+   ```
 
 ### Usage
-   python test_extraction.py data/sample_1.pdf
 
-To use a different server address, set the environment variable:
-   set LLAMA_SERVER_URL=http://localhost:9090/v1
+```bash
+python test_extraction.py data/ADSdata/some_invoice.pdf
+```
+
+To use a different server address:
+```bash
+set LLAMA_SERVER_URL=http://localhost:9090/v1
+```
