@@ -9,6 +9,7 @@ Requires llama-server running at localhost:8080 (or set LLAMA_SERVER_URL).
 import json
 import sys
 
+from app import app
 from extraction import LiquidExtractor
 
 
@@ -25,7 +26,8 @@ def main():
     print("-" * 50)
 
     try:
-        result = extractor.extract(pdf_path)
+        with app.app_context():
+             result = extractor.extract(pdf_path)
         print(json.dumps(result, indent=2))
     except FileNotFoundError as e:
         print(f"Error: {e}")
