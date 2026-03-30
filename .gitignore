@@ -1,40 +1,40 @@
-.gradle
-**/build/
-!**/src/**/build/
-
-# Ignore Gradle GUI config
-gradle-app.setting
-
-# Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
-!gradle-wrapper.jar
-
-# Avoid ignore Gradle wrappper properties
-!gradle-wrapper.properties
-
-# Cache of project
-.gradletasknamecache
-
-# Eclipse Gradle plugin generated files
-# Eclipse Core
-.project
-# JDT-specific (Eclipse Java Development Tools)
-.classpath
-
-# Python virtual environments
+# Python
 .venv/
 venv/
-
-# Python cache
 __pycache__/
 *.pyc
+*.pyo
+*.egg-info/
+dist/
+.eggs/
 
-# Database files
+# Environment variables
+.env
+.env.*
+
+# Database
 *.db
 
-# Dummy data files
-data/seeder_invoice_data/*
-data/seeder_po_data/*
+# Flask instance folder
+instance/
 
-# Tailwind 
+# ADS data files
+data/
+
+# AI models
+ai_models/
+
+# Tailwind
 tailwindcss.exe
-static/src/output.css 
+static/src/output.css
+
+# Node
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

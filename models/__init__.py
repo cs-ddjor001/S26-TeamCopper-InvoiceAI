@@ -5,6 +5,7 @@ from .invoice import Invoice
 from .emails import Emails
 from .email_addresses import Email_Addresses
 from .purchase_orders import Purchase_Order
+from .po_line_item import PO_Line_Item
 from .sessions import Sessions
 from .user_roles import User_Roles
 from .user_audit import User_Audit
