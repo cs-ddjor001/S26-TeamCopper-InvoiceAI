@@ -7,6 +7,8 @@ import re
 import fitz  # PyMuPDF
 from openai import OpenAI, APIConnectionError
 
+from pdf_parsing.db_writer import save_parsed_invoice
+
 from .base import InvoiceExtractor
 
 SYSTEM_PROMPT = """\
@@ -76,7 +78,8 @@ class LiquidExtractor(InvoiceExtractor):
         image_b64 = self._pdf_to_base64_image(pdf_path) #pdf to image
         raw_response = self._call_model(image_b64) #image to ai model
         data = self._parse_response(raw_response)  #make response json
-        self._save_json(data, pdf_path)           
+        self._save_json(data, pdf_path)   
+        save_parsed_invoice(data)        
         return data                                
 
     def _save_json(self, data: dict, pdf_path: str): 
