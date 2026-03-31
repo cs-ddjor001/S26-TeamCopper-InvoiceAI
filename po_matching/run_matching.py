@@ -13,7 +13,7 @@ def run_matching():
         po_and_score = match_invoice(invoice)
         for po, score in po_and_score.items():
             # TODO need to prevent duplicate matches?
-            if score > 25:
+            if score > 25 and Match.query.filter_by(invoice_id=invoice.id, po_id=po.id) is None:
                 match = Match(
                     invoice_id = invoice.id,
                     po_id = po.id,
