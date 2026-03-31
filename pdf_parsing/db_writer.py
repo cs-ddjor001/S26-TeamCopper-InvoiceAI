@@ -2,6 +2,7 @@ from datetime import datetime
 from extensions import db
 from models.vendors import Vendors
 from models.invoice import Invoice
+from models.invoice_line_item import Invoice_Line_Item
 from .validator import InvoiceValidator
 
 def normalize_raw_invoice(data:dict) -> dict:
@@ -47,4 +48,16 @@ def save_parsed_invoice(parsed):
     db.session.add(invoice)
     db.session.commit()
 
+    for item in parsed.line_items:
+        li = Invoice_Line_Item(invoice_id=invoice.id,
+                               line_num=None,
+                               part_number=None,
+                               part_description=item.description,
+                               unit_of_measure=None,
+                               quantity=item.quantity,
+                               unit_price=float(item.unit_price),
+                               amt_invoiced=float(item.total),
+                               clin=None)
+        db.session.add(li)
+    db.session.commit()
     return invoice

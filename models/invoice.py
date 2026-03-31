@@ -1,5 +1,5 @@
 from extensions import db
-
+from models.invoice_line_item import Invoice_Line_Item
 
 class Invoice(db.Model):
     __tablename__ = "invoice"
@@ -12,6 +12,8 @@ class Invoice(db.Model):
     status = db.Column(db.String(50), default="pending")
     date_issued = db.Column(db.DateTime, nullable=True)
     confidence_score = db.Column(db.Float, nullable=True)
+
+    line_items = db.relationship("Invoice_Line_Item", backref="invoice", lazy=True)
 
     def __repr__(self):
         return f"<Invoice {self.id}>"
