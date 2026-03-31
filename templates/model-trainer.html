@@ -1,133 +1,202 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard{% endblock %}
+{% block title %}Model Trainer{% endblock %}
 
 {% block content %}
 
 <div class="bg-gray-50">
   <div class="max-w-8xl mx-auto px-6 py-8">
-      <div>
-        <h1 class="text-2xl font-semibold text-gray-900">Invoice Processing System</h1>
-        <p class="text-gray-600 mt-1">Upload, extract, and match invoices with purchase orders</p>
-    
-        <nav class="mt-5 w-full ">
-          <div class="max-w-8xl mx-auto bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 mt-10">
-              <div class="flex border-b bg-gray-50">
-
-                <button class="tab-link px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-800 hover:bg-gray-200 no-underline decoration-transparent border-0 outline-none appearance-none" data-tab-target="#tab-1">
-                    Model Overview
-                </button>
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-900">Invoice Processing System</h1>
+      <p class="text-gray-600 mt-1">Upload, extract, and match invoices with purchase orders</p>
     </div>
 
-{% macro render_little_boxes(title, content="text") %}
-    <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
-      <p class="text-sm text-gray-500">{{ title }}</p>
-      <p class="text-2xl font-semibold mt-2">{{ content }}</p>
-    </div>
-{% endmacro %}
+    <div class="max-w-8xl mx-auto bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 mt-6">
+      <div class="flex flex-wrap gap-2 p-2 border-b bg-gray-50">
+        <button onclick="showTab(1)" id="btn1" class="px-4 py-2 text-sm font-medium rounded-full border-0 outline-none cursor-pointer bg-indigo-600 text-white">Model Overview</button>
+        <button onclick="showTab(2)" id="btn2" class="px-4 py-2 text-sm font-medium rounded-full border-0 outline-none cursor-pointer bg-gray-100 text-gray-800">Training &amp; Retraining</button>
+        <button onclick="showTab(3)" id="btn3" class="px-4 py-2 text-sm font-medium rounded-full border-0 outline-none cursor-pointer bg-gray-100 text-gray-800">Accuracy &amp; Performance</button>
+      </div>
 
-{% macro render_sub_containers(title, content="text") %}
-    <div class="mt-6 flex items-center justify-center border border-dashed border-gray-200 rounded-lg h-10 text-black-400">
-      <p>{{ title }}: {{ content }}</p>
-     </div>
-{% endmacro %}
+      <div class="p-6">
 
-    <div class="p-6">
+        <div id="tab1">
+          <h2 class="text-lg font-semibold text-gray-900">Model Overview</h2>
+          <p class="text-sm text-gray-500 mt-1">Current model configuration and status</p>
 
-      <!--Tab 1 Content-->
-      <div id="tab-1" class="tab-content block">
+          <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            {{ render_little_boxes("Base Model", "LFM2.5-VL") }}
+            {{ render_little_boxes("Model Size", "1.6B params") }}
+            {{ render_little_boxes("Max Sequence Length", "32K tokens") }}  <!-- Maximum tokens per training -->
+          </div>
 
-          <!--The little boxes on top-->
-           <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-5">
-
-                {{ render_little_boxes("Base Model", "LFM2.5-VL-1.6B") }}
-                {{ render_little_boxes("Model Size", "1.6B parameters") }}
-                {{ render_little_boxes("Max Sequence Length", "32K tokens") }}  <!-- Maximum tokens per training -->
-                
-                <div class=" bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
-                    <h2 class="text-lg font-semibold text-gray-900">Training Parameters</h2>
-
-                    {{ render_sub_containers("Number of Epochs", "—") }}
-                    {{ render_sub_containers("Batch Size", "—") }}
-                    {{ render_sub_containers("Gradient Accumulation", "—") }} <!-- Batch Size Multiplier-->
-                    {{ render_sub_containers("Effective Batch Size", "—") }} <!-- batch * accumulation -->
-
-                </div>
-
-                
-              <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
-                <h2 class="text-lg font-semibold text-gray-900">Dataset Configuration</h2>
-
-                    {{ render_sub_containers("Dataset Name", "—") }}
-                    {{ render_sub_containers("Number of Samples", "—") }} 
-                    {{ render_sub_containers("Evaluation Split", "—") }} 
-
+          <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
+              <h3 class="text-base font-semibold text-gray-900 mb-4">Training Parameters</h3>
+              <div class="space-y-3">
+                <div class="flex items-center justify-between py-2 border-b border-gray-100"><span class="text-sm text-gray-600">Number of Epochs</span><span class="text-sm font-medium text-gray-900">3</span></div>
+                <div class="flex items-center justify-between py-2 border-b border-gray-100"><span class="text-sm text-gray-600">Batch Size</span><span class="text-sm font-medium text-gray-900">8</span></div>
+                <div class="flex items-center justify-between py-2 border-b border-gray-100"><span class="text-sm text-gray-600">Gradient Accumulation</span><span class="text-sm font-medium text-gray-900">4</span></div> <!-- Batch Size Multiplier-->
+                <div class="flex items-center justify-between py-2"><span class="text-sm text-gray-600">Effective Batch Size</span><span class="text-sm font-semibold text-indigo-600">32</span></div> <!-- batch * accumulation -->
               </div>
-
-               <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
-                <h2 class="text-lg font-semibold text-gray-900">Metrics</h2>
-
-                    {{ render_sub_containers("Training Duration", "—") }} <!-- num epochs -->
-                    {{ render_sub_containers("Total Training Samples", "—") }} <!-- dataset size * epochs-->
-                    {{ render_sub_containers("Estimated Training Time", "—") }} <!-- throughput * epochs maybe?-->
-
+            </div>
+            <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
+              <h3 class="text-base font-semibold text-gray-900 mb-4">Dataset Configuration</h3>
+              <div class="space-y-3">
+                <div class="flex items-center justify-between py-2 border-b border-gray-100"><span class="text-sm text-gray-600">Dataset Name</span><span class="text-sm font-medium text-gray-900">ADS Invoices v1</span></div>
+                <div class="flex items-center justify-between py-2 border-b border-gray-100"><span class="text-sm text-gray-600">Number of Samples</span><span class="text-sm font-medium text-gray-900">{{ invoice_count }}</span></div>
+                <div class="flex items-center justify-between py-2"><span class="text-sm text-gray-600">Evaluation Split</span><span class="text-sm font-medium text-gray-900">20%</span></div>
               </div>
-
-            </div> 
             </div>
-
-             <!--Tab 2 Content-->
-            <div id="tab-2" class="tab-content block">
-
-            <!--The little boxes on top-->
-            <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-5">
-
-                {{ render_little_boxes("Retraining Cadence", "—") }}
-                {{ render_little_boxes("Batch Size", "—") }}
-                {{ render_little_boxes("Select Dataset", "—") }}
-                {{ render_little_boxes("Version", "—") }}
-
+            <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
+              <h3 class="text-base font-semibold text-gray-900 mb-4">Training Metrics</h3>
+              <div class="space-y-3">
+                <div class="flex items-center justify-between py-2 border-b border-gray-100"><span class="text-sm text-gray-600">Training Duration</span><span class="text-sm font-medium text-gray-900">3 epochs</span></div> <!-- num epochs -->
+                <div class="flex items-center justify-between py-2 border-b border-gray-100"><span class="text-sm text-gray-600">Total Training Samples</span><span class="text-sm font-medium text-gray-900">{{ invoice_count * 3 }}</span></div> <!-- dataset size * epochs-->
+                <div class="flex items-center justify-between py-2"><span class="text-sm text-gray-600">Estimated Training Time</span><span class="text-sm font-medium text-gray-900">—</span></div> <!-- throughput * epochs maybe?-->
+              </div>
             </div>
-            
+          </div>
+
+          <div class="mt-6 bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
+            <h3 class="text-base font-semibold text-gray-900 mb-4">Model Version History</h3>
+            <table class="w-full text-sm text-left">
+              <thead><tr class="border-b border-gray-200">
+                <th class="pb-3 font-semibold text-gray-900">Version</th>
+                <th class="pb-3 font-semibold text-gray-900">Date</th>
+                <th class="pb-3 font-semibold text-gray-900">Dataset</th>
+                <th class="pb-3 font-semibold text-gray-900">Accuracy</th>
+                <th class="pb-3 font-semibold text-gray-900">Status</th>
+              </tr></thead>
+              <tbody class="divide-y divide-gray-100">
+                <tr>
+                  <td class="py-3 text-gray-700 font-medium">v1.0.0</td>
+                  <td class="py-3 text-gray-500">—</td>
+                  <td class="py-3 text-gray-700">ADS Invoices v1 ({{ invoice_count }} samples)</td>
+                  <td class="py-3"><span class="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">{{ "%.1f"|format(match_rate) }}%</span></td>
+                  <td class="py-3"><span class="px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">Active</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-    </div> <!-- end tabs -->    
-  </div> <!-- end card -->
 
-  <a href="/"
-     class="mt-6 inline-flex items-center px-4 py-2 text-sm font-medium rounded-md bg-white text-gray-900 shadow-sm ring-1 ring-gray-200 hover:bg-gray-50 no-underline decoration-transparent border-0 outline-none appearance-none">
-     Back to Home
-  </a>
-</div>
+        <div id="tab2" style="display:none">
+          <h2 class="text-lg font-semibold text-gray-900">Training &amp; Retraining</h2>
+          <p class="text-sm text-gray-500 mt-1">Configure and trigger model retraining workflows</p>
+
+          <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+            {{ render_little_boxes("Retraining Cadence", "Weekly") }}
+            {{ render_little_boxes("Corrections Queued", "—") }}
+            {{ render_little_boxes("Active Dataset", "v1") }}
+            {{ render_little_boxes("Current Version", "v1.0.0") }}
+          </div>
+
+          <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
+              <h3 class="text-base font-semibold text-gray-900 mb-4">Retraining Configuration</h3>
+              <div class="space-y-4">
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">Retraining Cadence</label><select class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700"><option>Weekly</option><option>Bi-weekly</option><option>Monthly</option><option>Manual Only</option></select></div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">Learning Rate</label><input type="text" value="2e-5" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700"></div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">Epochs</label><input type="number" value="3" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700"></div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">Batch Size</label><input type="number" value="8" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700"></div>
+                <button class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg text-sm border-0 outline-none appearance-none">Save Configuration</button>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
+              <h3 class="text-base font-semibold text-gray-900 mb-4">Manual Retraining</h3>
+              <div class="space-y-4">
+                <div class="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p class="text-sm text-amber-800 font-medium">Retraining will incorporate human corrections</p>
+                  <p class="text-xs text-amber-600 mt-1">The current model will remain active during training.</p>
+                </div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">Select Dataset</label><select class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700"><option>ADS Invoices v1 + corrections</option><option>ADS Invoices v1</option></select></div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">New Version Tag</label><input type="text" value="v1.1.0" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700"></div>
+                <button class="w-full bg-gray-900 hover:bg-black text-white font-medium py-2.5 rounded-lg text-sm border-0 outline-none appearance-none">Start Retraining</button>
+              </div>
+              <div class="mt-6">
+                <h4 class="text-sm font-semibold text-gray-700 mb-3">Recent Training Runs</h4>
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div><p class="text-sm font-medium text-gray-900">v1.0.0 Training</p><p class="text-xs text-gray-400">—</p></div>
+                    <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Completed</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="tab3" style="display:none">
+          <h2 class="text-lg font-semibold text-gray-900">Accuracy &amp; Performance</h2>
+          <p class="text-sm text-gray-500 mt-1">Monitor model accuracy metrics and match quality over time</p>
+
+          <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+            {{ render_little_boxes("Match Accuracy", ("%.1f"|format(match_rate)) ~ "%") }}
+            {{ render_little_boxes("Extraction Accuracy", "—") }}
+            {{ render_little_boxes("False Positives", "—") }}
+            {{ render_little_boxes("Avg Confidence", (avg_confidence ~ "%") if avg_confidence else "—") }}
+          </div>
+
+          <div class="mt-6 bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
+            <h3 class="text-sm font-semibold text-gray-900 mb-3">Accuracy Over Time</h3>
+            <canvas id="accuracyChart" height="100"></canvas>
+          </div>
+
+          <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
+              <h3 class="text-base font-semibold text-gray-900 mb-4">Confidence Score Distribution</h3>
+              <canvas id="confidenceChart" height="200"></canvas>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
+              <h3 class="text-base font-semibold text-gray-900 mb-4">Extraction Field Accuracy</h3>
+              <div class="space-y-3">
+                <div><div class="flex items-center justify-between mb-1"><span class="text-sm text-gray-600">PO Number</span><span class="text-sm font-medium text-gray-900">—</span></div><div class="w-full bg-gray-100 rounded-full h-2"><div class="bg-gray-300 h-2 rounded-full" style="width:0%"></div></div></div>
+                <div><div class="flex items-center justify-between mb-1"><span class="text-sm text-gray-600">Vendor Name</span><span class="text-sm font-medium text-gray-900">—</span></div><div class="w-full bg-gray-100 rounded-full h-2"><div class="bg-gray-300 h-2 rounded-full" style="width:0%"></div></div></div>
+                <div><div class="flex items-center justify-between mb-1"><span class="text-sm text-gray-600">Invoice Total</span><span class="text-sm font-medium text-gray-900">—</span></div><div class="w-full bg-gray-100 rounded-full h-2"><div class="bg-gray-300 h-2 rounded-full" style="width:0%"></div></div></div>
+                <div><div class="flex items-center justify-between mb-1"><span class="text-sm text-gray-600">Date</span><span class="text-sm font-medium text-gray-900">—</span></div><div class="w-full bg-gray-100 rounded-full h-2"><div class="bg-gray-300 h-2 rounded-full" style="width:0%"></div></div></div>
+                <div><div class="flex items-center justify-between mb-1"><span class="text-sm text-gray-600">Line Items</span><span class="text-sm font-medium text-gray-900">—</span></div><div class="w-full bg-gray-100 rounded-full h-2"><div class="bg-gray-300 h-2 rounded-full" style="width:0%"></div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <a href="/" class="mt-6 inline-flex items-center px-4 py-2 text-sm font-medium rounded-md bg-white text-gray-900 shadow-sm ring-1 ring-gray-200 hover:bg-gray-50 no-underline decoration-transparent border-0 outline-none appearance-none">Back to Home</a>
+  </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    const tabs = document.querySelectorAll('.tab-link');
-    const contents = document.querySelectorAll('.tab-content');
-
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const target = document.querySelector(tab.dataset.tabTarget);
-
-            //Hide content
-            contents.forEach(content => content.classList.add('hidden'));
-            tabs.forEach(t => {
-                t.classList.remove('border-blue-500', 'text-blue-600');
-                t.classList.add('border-transparent', 'text-gray-500');
-            });
-
-            //Active content
-            target.classList.remove('hidden');
-            tab.classList.add('border-blue-500', 'text-blue-600');
-            tab.classList.remove('border-transparent', 'text-gray-500');
-        });
+function showTab(n) {
+  document.getElementById('tab1').style.display = 'none';
+  document.getElementById('tab2').style.display = 'none';
+  document.getElementById('tab3').style.display = 'none';
+  document.getElementById('btn1').className = 'px-4 py-2 text-sm font-medium rounded-full border-0 outline-none cursor-pointer bg-gray-100 text-gray-800';
+  document.getElementById('btn2').className = 'px-4 py-2 text-sm font-medium rounded-full border-0 outline-none cursor-pointer bg-gray-100 text-gray-800';
+  document.getElementById('btn3').className = 'px-4 py-2 text-sm font-medium rounded-full border-0 outline-none cursor-pointer bg-gray-100 text-gray-800';
+  document.getElementById('tab' + n).style.display = 'block';
+  document.getElementById('btn' + n).className = 'px-4 py-2 text-sm font-medium rounded-full border-0 outline-none cursor-pointer bg-indigo-600 text-white';
+  if (n === 3 && !document.getElementById('accuracyChart').dataset.drawn) {
+    document.getElementById('accuracyChart').dataset.drawn = '1';
+    new Chart(document.getElementById('accuracyChart'), {
+      type:'line', data:{labels:['W1','W2','W3','W4','W5','W6','W7','W8'],datasets:[
+        {label:'Match Accuracy',data:[{{ match_rate }},{{ match_rate }},{{ match_rate }},{{ match_rate }},{{ match_rate }},{{ match_rate }},{{ match_rate }},{{ match_rate }}],borderColor:'#22c55e',backgroundColor:'rgba(34,197,94,0.1)',tension:0.4,fill:true,pointRadius:4},
+        {label:'Target (75%)',data:[75,75,75,75,75,75,75,75],borderColor:'#94a3b8',borderDash:[5,5],tension:0,fill:false,pointRadius:0}
+      ]}, options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true,padding:20,font:{size:12}}}},scales:{y:{min:50,max:100,ticks:{callback:function(v){return v+'%'}},grid:{color:'#f1f5f9'}},x:{grid:{display:false}}}}
     });
-
-  document.querySelector('.tab-link').click();
+    new Chart(document.getElementById('confidenceChart'), {
+      type:'doughnut', data:{labels:['High (80%+)','Medium (50-79%)','Low (<50%)','Unscored'],datasets:[{data:[{{ high_confidence }},{{ med_confidence }},{{ low_confidence }},{{ unscored }}],backgroundColor:['#22c55e','#f59e0b','#ef4444','#d1d5db'],borderWidth:0}]},
+      options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true,padding:16,font:{size:12}}}}}
+    });
+  }
+}
 </script>
 
 {% endblock %}
-
-
 
 <!--TODO:
     -Graph for AI2's outputs vs ongoing company expectations/ projected metrics?

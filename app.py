@@ -48,7 +48,20 @@ def home():
 @app.route("/dashboard")
 def dashboard():
     invoices = models.Invoice.query.all()
-    return render_template("dashboard.html", invoices=invoices)
+    pending_count = sum(1 for i in invoices if i.status != "complete")
+    completed_count = sum(1 for i in invoices if i.status == "complete")
+    total_value = sum(i.amount for i in invoices if i.amount)
+    avg_value = total_value / len(invoices) if invoices else 0
+    low_confidence = sum(1 for i in invoices if i.confidence_score is not None and i.confidence_score < 50)
+    med_confidence = sum(1 for i in invoices if i.confidence_score is not None and 50 <= i.confidence_score < 80)
+    high_confidence = sum(1 for i in invoices if i.confidence_score is not None and i.confidence_score >= 80)
+    vendor_names = sorted(set(i.vendor_name for i in invoices if i.vendor_name))
+    vendor_count = len(vendor_names)
+    return render_template("dashboard.html",
+        invoices=invoices, pending_count=pending_count, completed_count=completed_count,
+        total_value=total_value, avg_value=avg_value,
+        low_confidence=low_confidence, med_confidence=med_confidence, high_confidence=high_confidence,
+        vendor_names=vendor_names, vendor_count=vendor_count)
 
 
 @app.route("/run-matching", methods=["POST"])
@@ -67,7 +80,20 @@ def ap():
 
 @app.route("/model-trainer")
 def model_trainer():
-    return render_template("model-trainer.html")
+    invoices = models.Invoice.query.all()
+    invoice_count = len(invoices)
+    completed_count = sum(1 for i in invoices if i.status == "complete")
+    match_rate = (completed_count / invoice_count * 100) if invoice_count else 0
+    scored = [i for i in invoices if i.confidence_score is not None]
+    low_confidence = sum(1 for i in scored if i.confidence_score < 50)
+    med_confidence = sum(1 for i in scored if 50 <= i.confidence_score < 80)
+    high_confidence = sum(1 for i in scored if i.confidence_score >= 80)
+    unscored = invoice_count - len(scored)
+    avg_confidence = int(sum(i.confidence_score for i in scored) / len(scored)) if scored else 0
+    return render_template("model-trainer.html",
+        invoice_count=invoice_count, match_rate=match_rate,
+        low_confidence=low_confidence, med_confidence=med_confidence,
+        high_confidence=high_confidence, unscored=unscored, avg_confidence=avg_confidence)
 
 @app.route('/invoice-pdf/<int:invoice_id>')
 def get_invoice_pdf(invoice_id):
