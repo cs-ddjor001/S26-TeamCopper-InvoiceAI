@@ -20,7 +20,7 @@ def match_to_po_directly(po_number):
 
 def match_by_fields(invoice):
     return Purchase_Order.query.filter_by(
-        vendor=invoice.vendor,
+        vendor_name=invoice.vendor_name,
         amount=invoice.amount,
         date_issued=invoice.date_issued,
     ).first()
