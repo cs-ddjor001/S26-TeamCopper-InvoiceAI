@@ -11,6 +11,8 @@ from pdf_parsing.db_writer import save_parsed_invoice
 
 from .base import InvoiceExtractor
 
+from json_repair import repair_json
+
 SYSTEM_PROMPT = """\
 You are an invoice data extraction assistant. You will be given an image of an \
 invoice. Extract the following fields and return ONLY valid JSON with no \
@@ -151,9 +153,12 @@ class LiquidExtractor(InvoiceExtractor):
         Handles cases where the model wraps JSON in markdown code fences
         or includes extra text around the JSON object.
         """
+
         # Try direct parse first
         try:
-            return json.loads(raw)
+            repaired = repair_json(raw)
+            repaired = repair_json(repaired)
+            return json.loads(repaired)
         except json.JSONDecodeError:
             pass
 
@@ -161,7 +166,9 @@ class LiquidExtractor(InvoiceExtractor):
         fenced = re.search(r"```(?:json)?\s*\n?(.*?)\n?\s*```", raw, re.DOTALL)
         if fenced:
             try:
-                return json.loads(fenced.group(1))
+                repaired = repair_json(fenced.group(1))
+                repaired = repair_json(repaired)
+                return json.loads(repaired)
             except json.JSONDecodeError:
                 pass
 
@@ -169,7 +176,9 @@ class LiquidExtractor(InvoiceExtractor):
         brace_match = re.search(r"\{.*\}", raw, re.DOTALL)
         if brace_match:
             try:
-                return json.loads(brace_match.group(0))
+                repaired = repair_json(brace_match.group(0))
+                repaired = repair_json(repaired)
+                return json.loads(repaired)
             except json.JSONDecodeError:
                 pass
 
