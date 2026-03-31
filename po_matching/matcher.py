@@ -1,26 +1,25 @@
-from models.purchase_orders import Purchase_Order
-
+from po_matching.exact_matcher import match_invoice_exact
+from po_matching.fuzzy_matcher import (
+    match_to_po_fuzzy,
+    match_by_fields_fuzzy
+)
 
 def match_invoice(invoice):
-    if invoice.po_number:
-        po = match_to_po_directly(invoice.po_number)
-        if po:
-            return po, 100
-
-    po = match_by_fields(invoice)
+    # 1. Try exact matching first
+    po, score = match_invoice_exact(invoice)
     if po:
-        return po, 100
+        return po, score
+
+    # 2. Try fuzzy PO matching
+    if invoice.po_number:
+        po, score = match_to_po_fuzzy(invoice.po_number)
+        if po:
+            return po, int(score * 100)
+
+    # 3. Try fuzzy field matching
+    po, score = match_by_fields_fuzzy(invoice)
+    if po:
+        return po, int(score * 100)
 
     return None, None
 
-
-def match_to_po_directly(po_number):
-    return Purchase_Order.query.filter_by(po_number=po_number).first()
-
-
-def match_by_fields(invoice):
-    return Purchase_Order.query.filter_by(
-        vendor=invoice.vendor,
-        amount=invoice.amount,
-        date_issued=invoice.date_issued,
-    ).first()
