@@ -4,9 +4,15 @@ from models.vendors import Vendors
 from models.invoice import Invoice
 from models.invoice_line_item import Invoice_Line_Item
 from .validator import InvoiceValidator
+from decimal import Decimal
 
 def normalize_raw_invoice(data:dict) -> dict:
     """Normalizes the LiquidAI output for InvoiceValidator."""
+
+    if not data.get("date"):
+        if isinstance(data.get("invoice_date"), str):
+            data["date"] = data["invoice_date"]
+
     date_val = data.get("date")
     if isinstance(date_val, str):
         for fmt in ("%Y-%m-%d", "%m/%d/%Y", "%m/%d/%y"):
@@ -19,8 +25,27 @@ def normalize_raw_invoice(data:dict) -> dict:
 
     for item in data.get("line_items", []):
         for key in ("unit_price", "total"):
-            if key in item and isinstance(item[key], (int, float)):
+            if key in item:
                 item[key] = str(item[key])
+        if "quantity" in item:
+            if isinstance(item["quantity"], (int, float)):
+                item["quantity"] = float(item["quantity"])
+
+    if not data.get("po_number"):
+        customer_po = (
+            data.get("purchase_customer", {}).get("customer_po")
+            or data.get("purchase_customer", {}).get("customer_number")
+            or data.get("customer_purchase_order_number")
+        )
+        if customer_po:
+            data["po_number"] = str(customer_po)
+
+    if not data.get("vendor_name"):
+        data["vendor_name"] = "UNKNOWN"
+    
+    for key in ("subtotal", "tax", "total"):
+        if key in data and isinstance(data[key], (int, float)):
+            data[key] = float(data[key])
 
     return data
 
