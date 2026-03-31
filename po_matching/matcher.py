@@ -2,6 +2,7 @@ from models.purchase_orders import Purchase_Order
 
 
 def match_invoice(invoice):
+    # For each invoice, calculate a confidence score and pair it with the compared PO
     po_and_score = {}
 
     results = Purchase_Order.query.all()
@@ -19,8 +20,6 @@ def match_invoice(invoice):
         if invoice.date_issued == po.date_issued:
             # print("Date match")
             score = score+15
-        # if score > 0:
-            # print(f"Score is {score}")
         po_and_score.update({po:score})
     
     return po_and_score

@@ -12,7 +12,8 @@ def run_matching():
         matchFound = False
         po_and_score = match_invoice(invoice)
         for po, score in po_and_score.items():
-            # TODO need to prevent duplicate matches?
+            # prevents duplicate matches if the matcher is run multiple times
+            # a shoddy solution really, would prefer not to query each time
             if score > 25 and Match.query.filter_by(invoice_id=invoice.id, po_id=po.id) is None:
                 match = Match(
                     invoice_id = invoice.id,
@@ -23,7 +24,7 @@ def run_matching():
                 db.session.add(match)
 
         if matchFound:
-            matched +=1
+            matched += 1
 
     db.session.commit()
     print(f"Matched: {matched}, still unmatched: {len(unmatched) - matched}")
