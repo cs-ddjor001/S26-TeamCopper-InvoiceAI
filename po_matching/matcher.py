@@ -1,8 +1,7 @@
-from po_matching.exact_matcher import match_invoice_exact
-from po_matching.fuzzy_matcher import (
-    match_to_po_fuzzy,
-    match_by_fields_fuzzy
-)
+from po_matching.exact_matcher import match_invoice as match_invoice_exact
+from po_matching.fuzzy_matcher import match_by_fields_fuzzy
+from models.invoice import Invoice
+from models.purchase_orders import Purchase_Order
 
 def match_invoice(invoice):
     # 1. Try exact matching first
@@ -10,16 +9,11 @@ def match_invoice(invoice):
     if po:
         return po, score
 
-    # 2. Try fuzzy PO matching
-    if invoice.po_number:
-        po, score = match_to_po_fuzzy(invoice.po_number)
-        if po:
-            return po, int(score * 100)
-
-    # 3. Try fuzzy field matching
+    # 2. Try fuzzy matching
     po, score = match_by_fields_fuzzy(invoice)
     if po:
-        return po, int(score * 100)
+        return po, score
 
-    return None, None
+    # 3. No match
+    return None, 0
 
