@@ -1,6 +1,6 @@
 from extensions import db
 from models.invoice import Invoice
-from po_matching.exact_matcher import match_invoice
+from po_matching.matcher import match_invoice
 
 
 def run_matching():
