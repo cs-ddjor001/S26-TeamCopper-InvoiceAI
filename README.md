@@ -59,7 +59,15 @@ python app.py
 flask run
 ```
 
+### 6. Usernames
+tom.ap
+sally.admin
+jim.model
 ---
+
+### 7. Upload Invoices
+After ensuring the liquid AI model is running (instructions below), use the Upload Invoice button to upload invoices,
+then run matching. 
 
 ## Liquid AI Invoice Extraction (Vision Model)
 
