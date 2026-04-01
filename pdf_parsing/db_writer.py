@@ -32,11 +32,43 @@ def normalize_raw_invoice(data:dict) -> dict:
                 item["quantity"] = float(item["quantity"])
 
     if not data.get("po_number"):
+        # Check flat keys the model commonly uses
         customer_po = (
             data.get("purchase_customer", {}).get("customer_po")
             or data.get("purchase_customer", {}).get("customer_number")
             or data.get("customer_purchase_order_number")
+            or data.get("customer_po_number")
+            or data.get("customer_po_nbr")
+            or data.get("customer_po_no")
+            or data.get("cust_po")
+            or data.get("purchase_order_number")
+            or data.get("purchase_order_no")
+            or data.get("order_number")
+            or data.get("order_no")
+            or data.get("customer_reference")
+            or data.get("your_reference")
+            or data.get("reference_number")
         )
+        # Check nested paths the model sometimes uses
+        if not customer_po:
+            for nested_key in ("payment_instructions", "payment_info", "billing_info", "order_info"):
+                nested = data.get(nested_key)
+                if isinstance(nested, dict):
+                    customer_po = (
+                        nested.get("purchase_order_number")
+                        or nested.get("po_number")
+                        or nested.get("customer_po")
+                        or nested.get("order_number")
+                        or nested.get("reference_number")
+                    )
+                    if not customer_po and isinstance(nested.get("bank_information"), dict):
+                        customer_po = (
+                            nested["bank_information"].get("purchase_order_number")
+                            or nested["bank_information"].get("po_number")
+                            or nested["bank_information"].get("customer_po")
+                        )
+                    if customer_po:
+                        break
         if customer_po:
             data["po_number"] = str(customer_po)
 

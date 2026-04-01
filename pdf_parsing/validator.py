@@ -53,7 +53,7 @@ class InvoiceValidator(BaseModel):
     @classmethod
     def normalize_fields(cls, data: dict) -> dict:
         # Vendor name fallbacks
-        if "vendor_name" not in data:
+        if not data.get("vendor_name"):
             data["vendor_name"] = (
                 data.get("supplier")
                 or data.get("vendor")
@@ -62,6 +62,9 @@ class InvoiceValidator(BaseModel):
                 or data.get("bill_from")
                 or data.get("seller")
                 or data.get("ship_from")
+                or data.get("remit_to")
+                or data.get("sold_by")
+                or data.get("issued_by")
             )
         if data.get("vendor_name") is None:
             import logging
@@ -70,21 +73,59 @@ class InvoiceValidator(BaseModel):
             )
 
         # Date fallbacks
-        if "date" not in data:
+        if not data.get("date"):
             data["date"] = (
                 data.get("invoice_date")
                 or data.get("issue_date")
                 or data.get("date_issued")
             )
 
-        # PO number fallbacks
-        if "po_number" not in data:
+        # PO number fallbacks — covers all common label variations the model may use
+        if not data.get("po_number"):
             data["po_number"] = (
                 data.get("customer_po")
+                or data.get("customer_po_number")
+                or data.get("customer_po_nbr")
+                or data.get("customer_po_no")
+                or data.get("cust_po")
                 or data.get("purchase_order")
+                or data.get("purchase_order_number")
+                or data.get("purchase_order_no")
                 or data.get("po_num")
+                or data.get("po_no")
+                or data.get("po_ref")
                 or data.get("buyer_reference")
+                or data.get("buyer_po")
                 or data.get("your_reference")
+                or data.get("your_ref")
+                or data.get("customer_reference")
+                or data.get("customer_ref")
+                or data.get("cust_ref")
+                or data.get("client_reference")
+                or data.get("client_ref")
+                or data.get("client_po")
+                or data.get("order_reference")
+                or data.get("order_ref")
+                or data.get("order_number")
+                or data.get("order_no")
+                or data.get("reference_number")
+                or data.get("reference")
+                or data.get("contract_number")
+                or data.get("contract_no")
+                or data.get("job_number")
+                or data.get("job_no")
+            )
+
+        # Total fallbacks
+        if not data.get("total"):
+            data["total"] = (
+                data.get("total_amount_due")
+                or data.get("amount_due")
+                or data.get("total_due")
+                or data.get("invoice_total")
+                or data.get("balance_due")
+                or data.get("grand_total")
+                or data.get("net_due")
             )
 
         return data

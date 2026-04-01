@@ -37,8 +37,34 @@ Required JSON structure:
   "po_number": "string or null"
 }
 
+Field extraction guidance:
+
+"vendor_name": The company or person sending/issuing the invoice (the seller or \
+supplier). Look for labels like: Vendor, Supplier, From, Bill From, Remit To, \
+Sold By, Seller, Ship From, Company Name. Do NOT use the buyer/customer name.
+
+"po_number": The purchase order reference number. This field may be labeled on \
+the invoice as any of the following — always map it to "po_number":
+  PO Number, PO #, PO No, P.O. Number, P.O. #, Purchase Order, Purchase Order Number,
+  Purchase Order No, Customer PO, Customer PO Number, Customer PO #, Customer PO No,
+  Customer P.O., Cust PO, Cust PO #, Customer Reference, Customer Ref, Cust Ref,
+  Your Reference, Your Ref, Order Reference, Order Ref, Reference Number, Ref No,
+  Reference, Client Reference, Client Ref, Client PO, Buyer Reference, Buyer PO,
+  Order Number, Order No, Contract Number, Contract No, Job Number, Job No.
+If the invoice contains a value under ANY of these labels, place it in "po_number".
+If multiple such labels are present, prefer the one most clearly labeled as a
+purchase order number.
+
+"total": The final amount due on the invoice. May be labeled: Total, Total Due,
+Total Amount Due, Amount Due, Invoice Total, Balance Due, Grand Total, Net Due.
+
+"date": The invoice issue date (not due date). May be labeled: Date, Invoice Date,
+Date Issued, Issue Date.
+
 Rules:
-- All monetary values should be numbers (not strings). Remove currency symbols.
+- All monetary values must be numbers (not strings). Remove currency symbols and commas.
+- For line items, "total" is the line total (quantity × unit_price). It may be
+  labeled: Total, Amount, Extended Amount, Line Total, Ext. Price.
 - If a field is not present on the invoice, set it to null.
 - If there are no line items, return an empty list for "line_items".
 - Return ONLY the JSON object. No extra text.\
