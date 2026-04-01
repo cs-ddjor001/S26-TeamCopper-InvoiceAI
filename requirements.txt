@@ -8,3 +8,4 @@ openai
 PyMuPDF
 json-repair
 pydantic
+rapidfuzz
