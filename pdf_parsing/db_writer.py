@@ -61,7 +61,7 @@ def save_parsed_invoice(parsed):
         db.session.flush()
 
     invoice = Invoice(
-        po_number=parsed.po_number,
+        po_number=parsed.po_number_int,
         matched_po_id=None,
         vendor_name=parsed.supplier,
         amount=parsed.amount,

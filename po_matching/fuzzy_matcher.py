@@ -27,7 +27,7 @@ def price_within_tolerance(invoice_price, po_price):
     diff = abs(invoice_price - po_price) / po_price
     return diff <= tolerance
 
-def match_by_fields_fuzzy(invoice, threshold=0.70):
+def match_by_fields_fuzzy(invoice, threshold=0.55):
     candidates = Purchase_Order.query.all()
 
     best_po = None
@@ -56,13 +56,13 @@ def match_by_fields_fuzzy(invoice, threshold=0.70):
         total_score += 0.30 * score_line
 
         # Date (5% weight)
-        score_date = 100 if invoice.date_issued == po.po_date else 0
+        score_date = 1 if invoice.date_issued == po.po_date else 0
         total_score += 0.05 * score_date
 
         if total_score > best_score:
             best_score = total_score
             best_po = po
-    
+
     if best_score >= threshold:
         return best_po, best_score
     

@@ -80,8 +80,9 @@ class LiquidExtractor(InvoiceExtractor):
         image_b64 = self._pdf_to_base64_image(pdf_path) #pdf to image
         raw_response = self._call_model(image_b64) #image to ai model
         data = self._parse_response(raw_response)  #make response json
-        self._save_json(data, pdf_path)   
-        save_parsed_invoice(data)        
+        self._save_json(data, pdf_path)
+        invoice = save_parsed_invoice(data)
+        data['_invoice_id'] = invoice.id
         return data                                
 
     def _save_json(self, data: dict, pdf_path: str): 

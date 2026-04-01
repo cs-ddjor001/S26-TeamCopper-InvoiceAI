@@ -99,6 +99,42 @@
               {% endfor %}
             </div>
           </div>
+          <div class="mt-6 bg-white border border-gray-200 rounded-xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-base font-semibold text-gray-900">Purchase Orders</h3>
+                <p class="text-sm text-gray-500">{{ purchase_orders|length }} PO(s) loaded in the system</p>
+              </div>
+            </div>
+            <div class="overflow-x-auto max-h-72 overflow-y-auto">
+              <table class="w-full text-sm text-left">
+                <thead class="sticky top-0 bg-white">
+                  <tr class="border-b border-gray-200">
+                    <th class="pb-3 font-semibold text-gray-900">PO Number</th>
+                    <th class="pb-3 font-semibold text-gray-900">Vendor</th>
+                    <th class="pb-3 font-semibold text-gray-900">Buyer</th>
+                    <th class="pb-3 font-semibold text-gray-900">PO Date</th>
+                    <th class="pb-3 font-semibold text-gray-900">Status</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                  {% for po in purchase_orders %}
+                  <tr>
+                    <td class="py-2 font-medium text-gray-900">{{ po.po_number }}</td>
+                    <td class="py-2 text-gray-700">{{ po.vendor_name or "—" }}</td>
+                    <td class="py-2 text-gray-500">{{ po.buyer_name or "—" }}</td>
+                    <td class="py-2 text-gray-500">{{ po.po_date | format_datetime('%m/%d/%Y') }}</td>
+                    <td class="py-2">
+                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">{{ po.po_status or "Open" }}</span>
+                    </td>
+                  </tr>
+                  {% else %}
+                  <tr><td colspan="5" class="py-8 text-center text-gray-400">No purchase orders loaded.</td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
 
         <!--Tab 2 Content-->

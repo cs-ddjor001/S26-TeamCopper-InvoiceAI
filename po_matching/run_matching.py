@@ -13,6 +13,7 @@ def run_matching():
         if po:
             invoice.matched_po_id = po.id
             invoice.confidence_score = score
+            invoice.status = "complete"
             matched += 1
 
     db.session.commit()

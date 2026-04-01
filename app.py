@@ -1,6 +1,7 @@
-from flask import Flask, render_template, redirect, url_for, send_from_directory
+from flask import Flask, render_template, redirect, url_for, send_from_directory, request
 from datetime import date, datetime
 import os
+import shutil
 from extensions import db
 
 app = Flask(__name__)
@@ -38,6 +39,8 @@ app.jinja_env.filters["format_datetime"] = format_datetime
 
 import models
 from po_matching.run_matching import run_matching
+from extraction.liquid_extractor import LiquidExtractor
+from werkzeug.utils import secure_filename
 
 
 @app.route("/")
@@ -48,6 +51,7 @@ def home():
 @app.route("/dashboard")
 def dashboard():
     invoices = models.Invoice.query.all()
+    purchase_orders = models.Purchase_Order.query.all()
     pending_count = sum(1 for i in invoices if i.status != "complete")
     completed_count = sum(1 for i in invoices if i.status == "complete")
     total_value = sum(i.amount for i in invoices if i.amount)
@@ -58,7 +62,8 @@ def dashboard():
     vendor_names = sorted(set(i.vendor_name for i in invoices if i.vendor_name))
     vendor_count = len(vendor_names)
     return render_template("dashboard.html",
-        invoices=invoices, pending_count=pending_count, completed_count=completed_count,
+        invoices=invoices, purchase_orders=purchase_orders,
+        pending_count=pending_count, completed_count=completed_count,
         total_value=total_value, avg_value=avg_value,
         low_confidence=low_confidence, med_confidence=med_confidence, high_confidence=high_confidence,
         vendor_names=vendor_names, vendor_count=vendor_count)
@@ -102,9 +107,38 @@ def get_invoice_pdf(invoice_id):
     filepath = os.path.join(directory, filename)
 
     if not os.path.exists(filepath):
-        return "", 404  # or return a default PDF
+        return "", 404
 
     return send_from_directory(directory, filename)
+
+
+@app.route('/upload-invoice', methods=['POST'])
+def upload_invoice():
+    if 'invoice_pdf' not in request.files:
+        return redirect(url_for('ap'))
+
+    file = request.files['invoice_pdf']
+    if not file or file.filename == '':
+        return redirect(url_for('ap'))
+
+    if not file.filename.lower().endswith('.pdf'):
+        return redirect(url_for('ap'))
+
+    filename = secure_filename(file.filename)
+    upload_dir = os.path.join(app.root_path, 'data', 'uploads')
+    os.makedirs(upload_dir, exist_ok=True)
+    pdf_path = os.path.join(upload_dir, filename)
+    file.save(pdf_path)
+
+    extractor = LiquidExtractor()
+    result = extractor.extract(pdf_path)
+
+    invoice_id = result.get('_invoice_id')
+    if invoice_id:
+        dest = os.path.join(app.root_path, 'data', f'sample_{invoice_id}.pdf')
+        shutil.copy(pdf_path, dest)
+
+    return redirect(url_for('ap'))
 
 
 if __name__ == "__main__":
