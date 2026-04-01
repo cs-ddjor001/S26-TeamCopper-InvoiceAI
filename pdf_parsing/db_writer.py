@@ -54,11 +54,12 @@ def save_parsed_invoice(parsed):
     parsed = normalize_raw_invoice(parsed)
     parsed = InvoiceValidator.model_validate(parsed)
 
-    vendor = Vendors.query.filter_by(name=parsed.supplier).first()
-    if not vendor:
-        vendor = Vendors(name=parsed.supplier)
-        db.session.add(vendor)
-        db.session.flush()
+    if parsed.supplier:
+        vendor = Vendors.query.filter_by(name=parsed.supplier).first()
+        if not vendor:
+            vendor = Vendors(name=parsed.supplier)
+            db.session.add(vendor)
+            db.session.flush()
 
     invoice = Invoice(
         po_number=parsed.po_number_int,
