@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, send_from_directory, request
+from flask import Flask, render_template, redirect, url_for, send_from_directory, request, flash
 from datetime import date, datetime
 import os
 import shutil
@@ -11,6 +11,7 @@ db_path = os.path.join(basedir, "app.db")
 
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.secret_key = "invoiceai-dev-key" # Necessary for flash messages (show errors)
 
 db.init_app(app)
 
@@ -130,13 +131,17 @@ def upload_invoice():
     pdf_path = os.path.join(upload_dir, filename)
     file.save(pdf_path)
 
-    extractor = LiquidExtractor()
-    result = extractor.extract(pdf_path)
+    try:
+        extractor = LiquidExtractor()
+        result = extractor.extract(pdf_path)
 
-    invoice_id = result.get('_invoice_id')
-    if invoice_id:
-        dest = os.path.join(app.root_path, 'data', f'sample_{invoice_id}.pdf')
-        shutil.copy(pdf_path, dest)
+        invoice_id = result.get('_invoice_id')
+        if invoice_id:
+            dest = os.path.join(app.root_path, 'data', f'sample_{invoice_id}.pdf')
+            shutil.copy(pdf_path, dest)
+    except Exception as e:
+        app.logger.error(f"Invoice extraction failed for {filename}: {e}")
+        flash(f"Could not process '{filename}': {e}", "error")
 
     return redirect(url_for('ap'))
 

@@ -28,6 +28,11 @@ class LineItem(BaseModel):
     def parse_currency(cls, v):
         if isinstance(v, str):
             cleaned = v.replace("$", "").replace(",", "").strip()
+            # If the AI misread a comma thousands separator as a period (e.g. "22.810.20"),
+            # strip all but the last period so it parses correctly.
+            if cleaned.count(".") > 1:
+                parts = cleaned.rsplit(".", 1)
+                cleaned = parts[0].replace(".", "") + "." + parts[1]
             return float(cleaned)
         return v
 
@@ -78,6 +83,8 @@ class InvoiceValidator(BaseModel):
                 data.get("customer_po")
                 or data.get("purchase_order")
                 or data.get("po_num")
+                or data.get("buyer_reference")
+                or data.get("your_reference")
             )
 
         return data
@@ -116,6 +123,9 @@ class InvoiceValidator(BaseModel):
             return float(v)
         if isinstance(v, str):
             cleaned = v.replace("$", "").replace(",", "").strip()
+            if cleaned.count(".") > 1:
+                parts = cleaned.rsplit(".", 1)
+                cleaned = parts[0].replace(".", "") + "." + parts[1]
             try:
                 return float(cleaned)
             except ValueError:
