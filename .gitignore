@@ -15,6 +15,11 @@ dist/
 # Database
 *.db
 
+# Dummy data files
+data/seeder_po_data/*
+data/seeder_invoice_data/*
+data/*.pdf
+data/*.csv
 # Flask instance folder
 instance/
 
