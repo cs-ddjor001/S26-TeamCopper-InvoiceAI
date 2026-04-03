@@ -1,4 +1,5 @@
 import base64
+from datetime import datetime
 import json
 import os
 import re
@@ -6,7 +7,11 @@ import re
 import fitz  # PyMuPDF
 from openai import OpenAI, APIConnectionError
 
+from pdf_parsing.db_writer import save_parsed_invoice
+
 from .base import InvoiceExtractor
+
+from json_repair import repair_json
 
 SYSTEM_PROMPT = """\
 You are an invoice data extraction assistant. You will be given an image of an \
@@ -32,8 +37,34 @@ Required JSON structure:
   "po_number": "string or null"
 }
 
+Field extraction guidance:
+
+"vendor_name": The company or person sending/issuing the invoice (the seller or \
+supplier). Look for labels like: Vendor, Supplier, From, Bill From, Remit To, \
+Sold By, Seller, Ship From, Company Name. Do NOT use the buyer/customer name.
+
+"po_number": The purchase order reference number. This field may be labeled on \
+the invoice as any of the following — always map it to "po_number":
+  PO Number, PO #, PO No, P.O. Number, P.O. #, Purchase Order, Purchase Order Number,
+  Purchase Order No, Customer PO, Customer PO Number, Customer PO #, Customer PO No,
+  Customer P.O., Cust PO, Cust PO #, Customer Reference, Customer Ref, Cust Ref,
+  Your Reference, Your Ref, Order Reference, Order Ref, Reference Number, Ref No,
+  Reference, Client Reference, Client Ref, Client PO, Buyer Reference, Buyer PO,
+  Order Number, Order No, Contract Number, Contract No, Job Number, Job No.
+If the invoice contains a value under ANY of these labels, place it in "po_number".
+If multiple such labels are present, prefer the one most clearly labeled as a
+purchase order number.
+
+"total": The final amount due on the invoice. May be labeled: Total, Total Due,
+Total Amount Due, Amount Due, Invoice Total, Balance Due, Grand Total, Net Due.
+
+"date": The invoice issue date (not due date). May be labeled: Date, Invoice Date,
+Date Issued, Issue Date.
+
 Rules:
-- All monetary values should be numbers (not strings). Remove currency symbols.
+- All monetary values must be numbers (not strings). Remove currency symbols and commas.
+- For line items, "total" is the line total (quantity × unit_price). It may be
+  labeled: Total, Amount, Extended Amount, Line Total, Ext. Price.
 - If a field is not present on the invoice, set it to null.
 - If there are no line items, return an empty list for "line_items".
 - Return ONLY the JSON object. No extra text.\
@@ -72,9 +103,31 @@ class LiquidExtractor(InvoiceExtractor):
         if not os.path.isfile(pdf_path):
             raise FileNotFoundError(f"PDF not found: {pdf_path}")
 
-        image_b64 = self._pdf_to_base64_image(pdf_path)
-        raw_response = self._call_model(image_b64)
-        return self._parse_response(raw_response)
+        image_b64 = self._pdf_to_base64_image(pdf_path) #pdf to image
+        raw_response = self._call_model(image_b64) #image to ai model
+        data = self._parse_response(raw_response)  #make response json
+        self._save_json(data, pdf_path)
+        invoice = save_parsed_invoice(data)
+        data['_invoice_id'] = invoice.id
+        return data                                
+
+    def _save_json(self, data: dict, pdf_path: str): 
+        """Save extracted JSON to file."""
+        os.makedirs("./data/json_output", exist_ok=True)
+
+        base_name = os.path.splitext(os.path.basename(pdf_path))[0]
+        invoice_number = data.get("invoice_number")
+
+        if invoice_number:
+            filename = f"{invoice_number}.json"
+        else:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"{base_name}_{timestamp}.json"
+
+        filepath = os.path.join("./data/json_output", filename)
+
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4) 
 
     def _pdf_to_base64_image(self, pdf_path: str) -> str:
         """Convert the first page of a PDF to a base64-encoded PNG string."""
@@ -127,9 +180,12 @@ class LiquidExtractor(InvoiceExtractor):
         Handles cases where the model wraps JSON in markdown code fences
         or includes extra text around the JSON object.
         """
+
         # Try direct parse first
         try:
-            return json.loads(raw)
+            repaired = repair_json(raw)
+            repaired = repair_json(repaired)
+            return json.loads(repaired)
         except json.JSONDecodeError:
             pass
 
@@ -137,7 +193,9 @@ class LiquidExtractor(InvoiceExtractor):
         fenced = re.search(r"```(?:json)?\s*\n?(.*?)\n?\s*```", raw, re.DOTALL)
         if fenced:
             try:
-                return json.loads(fenced.group(1))
+                repaired = repair_json(fenced.group(1))
+                repaired = repair_json(repaired)
+                return json.loads(repaired)
             except json.JSONDecodeError:
                 pass
 
@@ -145,7 +203,9 @@ class LiquidExtractor(InvoiceExtractor):
         brace_match = re.search(r"\{.*\}", raw, re.DOTALL)
         if brace_match:
             try:
-                return json.loads(brace_match.group(0))
+                repaired = repair_json(brace_match.group(0))
+                repaired = repair_json(repaired)
+                return json.loads(repaired)
             except json.JSONDecodeError:
                 pass
 

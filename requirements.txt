@@ -6,3 +6,6 @@ reportlab
 Faker
 openai
 PyMuPDF
+json-repair
+pydantic
+rapidfuzz
