@@ -24,7 +24,7 @@ def run_matching():
                 db.session.add(match)
 
         if matchFound:
-        po, score = match_invoice(invoice)
+            po, score = match_invoice(invoice)
         if po:
             invoice.matched_po_id = po.id
             invoice.confidence_score = score
