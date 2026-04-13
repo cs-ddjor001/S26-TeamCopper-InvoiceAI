@@ -40,7 +40,10 @@ app.jinja_env.filters["format_datetime"] = format_datetime
 
 import models
 from po_matching.run_matching import run_matching
-from extraction.liquid_extractor import LiquidExtractor
+from pdf_parsing.db_writer import save_parsed_invoice
+from pathlib import Path
+#from extraction.liquid_extractor import LiquidExtractor
+from pdf_parsing.parser import parse_invoice_pdf
 from werkzeug.utils import secure_filename
 
 
@@ -78,6 +81,15 @@ def trigger_matching():
 
 @app.route("/ap")
 def ap():
+    upload_dir = Path(app.root_path) / "data" / "uploads"
+
+    for pdf_path in upload_dir.glob("*.pdf"):
+        try:
+            parsed_invoice = parse_invoice_pdf(str(pdf_path))
+            save_parsed_invoice(parsed_invoice)
+        except Exception as e:
+            app.logger.error(f"Skipping PDF {pdf_path.name}: {e}")
+
     invoices = models.Invoice.query.all()
     purchase_orders = models.Purchase_Order.query.all()
     return render_template(
@@ -113,8 +125,12 @@ def get_invoice_pdf(invoice_id):
     return send_from_directory(directory, filename)
 
 
-@app.route('/upload-invoice', methods=['POST'])
+@app.route('/upload-invoice', methods=['GET', 'POST'])
 def upload_invoice():
+    if request.method == 'GET':
+        flash("Use the upload button on AP page to submit invoices.", "info")
+        return redirect(url_for('ap'))
+
     if 'invoice_pdf' not in request.files:
         return redirect(url_for('ap'))
 
@@ -132,13 +148,16 @@ def upload_invoice():
     file.save(pdf_path)
 
     try:
-        extractor = LiquidExtractor()
-        result = extractor.extract(pdf_path)
+        parsed_invoice = parse_invoice_pdf(pdf_path)
+        save_parsed_invoice(parsed_invoice)
+        ### Liquid Extractor
+        # extractor = LiquidExtractor()
+        # result = extractor.extract(pdf_path)
 
-        invoice_id = result.get('_invoice_id')
-        if invoice_id:
-            dest = os.path.join(app.root_path, 'data', f'sample_{invoice_id}.pdf')
-            shutil.copy(pdf_path, dest)
+        # invoice_id = result.get('_invoice_id')
+        # if invoice_id:
+        #     dest = os.path.join(app.root_path, 'data', f'sample_{invoice_id}.pdf')
+        #     shutil.copy(pdf_path, dest)
     except Exception as e:
         app.logger.error(f"Invoice extraction failed for {filename}: {e}")
         flash(f"Could not process '{filename}': {e}", "error")

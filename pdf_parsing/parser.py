@@ -1,11 +1,33 @@
-import re
 import pdfplumber
 from datetime import datetime
+from pathlib import Path
 from models.parsed_invoice import ParsedInvoice
 
 
+def _resolve_pdf_path(filepath):
+    """Resolve a PDF path, supporting both absolute paths and bare filenames."""
+    path = Path(filepath)
+    if path.is_file():
+        return path
+
+    # If only a filename is provided, search known project PDF folders.
+    project_root = Path(__file__).resolve().parent.parent
+    candidates = [
+        project_root / "data" / "uploads" / path.name,
+        project_root / "data" / path.name,
+    ]
+
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+
+    raise FileNotFoundError(f"PDF not found: {filepath}")
+
+
 def parse_invoice_pdf(filepath):
-    with pdfplumber.open(filepath) as pdf:
+    resolved_path = _resolve_pdf_path(filepath)
+
+    with pdfplumber.open(str(resolved_path)) as pdf:
         text = pdf.pages[0].extract_text()
 
     po_number = None
