@@ -1,4 +1,12 @@
-from flask import Flask, render_template, redirect, url_for, send_from_directory, request, flash
+from flask import (
+    Flask,
+    render_template,
+    redirect,
+    url_for,
+    send_from_directory,
+    request,
+    flash,
+)
 from datetime import date, datetime
 import os
 import shutil
@@ -11,7 +19,7 @@ db_path = os.path.join(basedir, "app.db")
 
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.secret_key = "invoiceai-dev-key" # Necessary for flash messages (show errors)
+app.secret_key = "invoiceai-dev-key"  # Necessary for flash messages (show errors)
 
 db.init_app(app)
 
@@ -42,7 +50,8 @@ import models
 from po_matching.run_matching import run_matching
 from pdf_parsing.db_writer import save_parsed_invoice
 from pathlib import Path
-#from extraction.liquid_extractor import LiquidExtractor
+
+# from extraction.liquid_extractor import LiquidExtractor
 from pdf_parsing.parser import parse_invoice_pdf
 from werkzeug.utils import secure_filename
 
@@ -60,17 +69,37 @@ def dashboard():
     completed_count = sum(1 for i in invoices if i.status == "complete")
     total_value = sum(i.amount for i in invoices if i.amount)
     avg_value = total_value / len(invoices) if invoices else 0
-    low_confidence = sum(1 for i in invoices if i.confidence_score is not None and i.confidence_score < 50)
-    med_confidence = sum(1 for i in invoices if i.confidence_score is not None and 50 <= i.confidence_score < 80)
-    high_confidence = sum(1 for i in invoices if i.confidence_score is not None and i.confidence_score >= 80)
+    low_confidence = sum(
+        1
+        for i in invoices
+        if i.confidence_score is not None and i.confidence_score < 50
+    )
+    med_confidence = sum(
+        1
+        for i in invoices
+        if i.confidence_score is not None and 50 <= i.confidence_score < 80
+    )
+    high_confidence = sum(
+        1
+        for i in invoices
+        if i.confidence_score is not None and i.confidence_score >= 80
+    )
     vendor_names = sorted(set(i.vendor_name for i in invoices if i.vendor_name))
     vendor_count = len(vendor_names)
-    return render_template("dashboard.html",
-        invoices=invoices, purchase_orders=purchase_orders,
-        pending_count=pending_count, completed_count=completed_count,
-        total_value=total_value, avg_value=avg_value,
-        low_confidence=low_confidence, med_confidence=med_confidence, high_confidence=high_confidence,
-        vendor_names=vendor_names, vendor_count=vendor_count)
+    return render_template(
+        "dashboard.html",
+        invoices=invoices,
+        purchase_orders=purchase_orders,
+        pending_count=pending_count,
+        completed_count=completed_count,
+        total_value=total_value,
+        avg_value=avg_value,
+        low_confidence=low_confidence,
+        med_confidence=med_confidence,
+        high_confidence=high_confidence,
+        vendor_names=vendor_names,
+        vendor_count=vendor_count,
+    )
 
 
 @app.route("/run-matching", methods=["POST"])
@@ -81,20 +110,12 @@ def trigger_matching():
 
 @app.route("/ap")
 def ap():
-    upload_dir = Path(app.root_path) / "data" / "uploads"
-
-    for pdf_path in upload_dir.glob("*.pdf"):
-        try:
-            parsed_invoice = parse_invoice_pdf(str(pdf_path))
-            save_parsed_invoice(parsed_invoice)
-        except Exception as e:
-            app.logger.error(f"Skipping PDF {pdf_path.name}: {e}")
-
     invoices = models.Invoice.query.all()
     purchase_orders = models.Purchase_Order.query.all()
     return render_template(
         "ap.html", invoices=invoices, purchase_orders=purchase_orders
     )
+
 
 @app.route("/model-trainer")
 def model_trainer():
@@ -107,15 +128,24 @@ def model_trainer():
     med_confidence = sum(1 for i in scored if 50 <= i.confidence_score < 80)
     high_confidence = sum(1 for i in scored if i.confidence_score >= 80)
     unscored = invoice_count - len(scored)
-    avg_confidence = int(sum(i.confidence_score for i in scored) / len(scored)) if scored else 0
-    return render_template("model-trainer.html",
-        invoice_count=invoice_count, match_rate=match_rate,
-        low_confidence=low_confidence, med_confidence=med_confidence,
-        high_confidence=high_confidence, unscored=unscored, avg_confidence=avg_confidence)
+    avg_confidence = (
+        int(sum(i.confidence_score for i in scored) / len(scored)) if scored else 0
+    )
+    return render_template(
+        "model-trainer.html",
+        invoice_count=invoice_count,
+        match_rate=match_rate,
+        low_confidence=low_confidence,
+        med_confidence=med_confidence,
+        high_confidence=high_confidence,
+        unscored=unscored,
+        avg_confidence=avg_confidence,
+    )
 
-@app.route('/invoice-pdf/<int:invoice_id>')
+
+@app.route("/invoice-pdf/<int:invoice_id>")
 def get_invoice_pdf(invoice_id):
-    directory = os.path.join(app.root_path, 'data')
+    directory = os.path.join(app.root_path, "data")
     filename = f"sample_{invoice_id}.pdf"
     filepath = os.path.join(directory, filename)
 
@@ -125,24 +155,24 @@ def get_invoice_pdf(invoice_id):
     return send_from_directory(directory, filename)
 
 
-@app.route('/upload-invoice', methods=['GET', 'POST'])
+@app.route("/upload-invoice", methods=["GET", "POST"])
 def upload_invoice():
-    if request.method == 'GET':
+    if request.method == "GET":
         flash("Use the upload button on AP page to submit invoices.", "info")
-        return redirect(url_for('ap'))
+        return redirect(url_for("ap"))
 
-    if 'invoice_pdf' not in request.files:
-        return redirect(url_for('ap'))
+    if "invoice_pdf" not in request.files:
+        return redirect(url_for("ap"))
 
-    file = request.files['invoice_pdf']
-    if not file or file.filename == '':
-        return redirect(url_for('ap'))
+    file = request.files["invoice_pdf"]
+    if not file or file.filename == "":
+        return redirect(url_for("ap"))
 
-    if not file.filename.lower().endswith('.pdf'):
-        return redirect(url_for('ap'))
+    if not file.filename.lower().endswith(".pdf"):
+        return redirect(url_for("ap"))
 
     filename = secure_filename(file.filename)
-    upload_dir = os.path.join(app.root_path, 'data', 'uploads')
+    upload_dir = os.path.join(app.root_path, "data", "uploads")
     os.makedirs(upload_dir, exist_ok=True)
     pdf_path = os.path.join(upload_dir, filename)
     file.save(pdf_path)
@@ -162,7 +192,7 @@ def upload_invoice():
         app.logger.error(f"Invoice extraction failed for {filename}: {e}")
         flash(f"Could not process '{filename}': {e}", "error")
 
-    return redirect(url_for('ap'))
+    return redirect(url_for("ap"))
 
 
 if __name__ == "__main__":
