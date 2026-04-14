@@ -14,7 +14,7 @@ from .base import InvoiceExtractor
 from json_repair import repair_json
 
 SYSTEM_PROMPT = """\
-You are an invoice data extraction assistant. You will be given an image of an \
+You are an invoice data extraction assistant. You will be given a string extraction of an \
 invoice. Extract the following fields and return ONLY valid JSON with no \
 additional text, no markdown fences, and no explanation.
 
@@ -86,30 +86,30 @@ class LiquidExtractor(InvoiceExtractor):
         self.model = model
         self.client = OpenAI(base_url=self.base_url, api_key="not-needed")
 
-    def extract(self, pdf_path: str) -> dict:
-        """Extract structured invoice data from a PDF using the vision model.
+    # def extract(self, pdf_path: str) -> dict:
+    #     """Extract structured invoice data from a PDF using the vision model.
 
-        Args:
-            pdf_path: Path to the PDF invoice file.
+    #     Args:
+    #         pdf_path: Path to the PDF invoice file.
 
-        Returns:
-            Dict with extracted invoice fields.
+    #     Returns:
+    #         Dict with extracted invoice fields.
 
-        Raises:
-            FileNotFoundError: If the PDF file does not exist.
-            ConnectionError: If the llama-server is not reachable.
-            ValueError: If the model response cannot be parsed as JSON.
-        """
-        if not os.path.isfile(pdf_path):
-            raise FileNotFoundError(f"PDF not found: {pdf_path}")
+    #     Raises:
+    #         FileNotFoundError: If the PDF file does not exist.
+    #         ConnectionError: If the llama-server is not reachable.
+    #         ValueError: If the model response cannot be parsed as JSON.
+    #     """
+    #     if not os.path.isfile(pdf_path):
+    #         raise FileNotFoundError(f"PDF not found: {pdf_path}")
 
-        image_b64 = self._pdf_to_base64_image(pdf_path) #pdf to image
-        raw_response = self._call_model(image_b64) #image to ai model
-        data = self._parse_response(raw_response)  #make response json
-        self._save_json(data, pdf_path)
-        invoice = save_parsed_invoice(data)
-        data['_invoice_id'] = invoice.id
-        return data                                
+    #     image_b64 = self._pdf_to_base64_image(pdf_path) #pdf to image
+    #     raw_response = self._call_model(image_b64) #image to ai model
+    #     data = self._parse_response(raw_response)  #make response json
+    #     self._save_json(data, pdf_path)
+    #     invoice = save_parsed_invoice(data)
+    #     data['_invoice_id'] = invoice.id
+    #     return data                                
 
     def _save_json(self, data: dict, pdf_path: str): 
         """Save extracted JSON to file."""

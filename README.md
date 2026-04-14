@@ -60,12 +60,14 @@ flask run
 ```
 
 ### 6. Usernames
+
 tom.ap
 sally.admin
 jim.model
 ---
 
 ### 7. Upload Invoices
+
 After ensuring the liquid AI model is running (instructions below), use the Upload Invoice button to upload invoices,
 then run matching. 
 
@@ -76,6 +78,7 @@ Uses the Liquid AI LFM2.5-VL-1.6B vision model to extract structured data from i
 ### Prerequisites
 
 1. Install llama.cpp:
+
    ```bash
    winget install llama.cpp
    ```
@@ -87,6 +90,7 @@ Uses the Liquid AI LFM2.5-VL-1.6B vision model to extract structured data from i
    Place both in the `ai_models/` directory.
 
 3. Start the llama server:
+
    ```bash
    llama-server --model ai_models/LFM2.5-VL-1.6B-Q8_0.gguf --mmproj ai_models/mmproj-LFM2.5-VL-1.6b-Q8_0.gguf --port 8080
    ```
@@ -98,6 +102,7 @@ python test_extraction.py data/ADSdata/some_invoice.pdf
 ```
 
 To use a different server address:
+
 ```bash
 set LLAMA_SERVER_URL=http://localhost:9090/v1
 ```
