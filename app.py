@@ -48,10 +48,6 @@ app.jinja_env.filters["format_datetime"] = format_datetime
 
 import models
 from po_matching.run_matching import run_matching
-from pdf_parsing.db_writer import save_parsed_invoice
-from pathlib import Path
-
-# from extraction.liquid_extractor import LiquidExtractor
 from pdf_parsing.parser import parse_invoice_pdf
 from werkzeug.utils import secure_filename
 
@@ -178,16 +174,11 @@ def upload_invoice():
     file.save(pdf_path)
 
     try:
-        parsed_invoice = parse_invoice_pdf(pdf_path)
-        save_parsed_invoice(parsed_invoice)
-        ### Liquid Extractor
-        # extractor = LiquidExtractor()
-        # result = extractor.extract(pdf_path)
+        invoice_string = parse_invoice_pdf(pdf_path)
 
-        # invoice_id = result.get('_invoice_id')
-        # if invoice_id:
-        #     dest = os.path.join(app.root_path, 'data', f'sample_{invoice_id}.pdf')
-        #     shutil.copy(pdf_path, dest)
+        ## TODO: AI invoice extraction function call.
+
+
     except Exception as e:
         app.logger.error(f"Invoice extraction failed for {filename}: {e}")
         flash(f"Could not process '{filename}': {e}", "error")

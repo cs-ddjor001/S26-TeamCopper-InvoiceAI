@@ -6,11 +6,6 @@ from models.invoice_line_item import Invoice_Line_Item
 from .validator import InvoiceValidator
 from decimal import Decimal
 
-
-def _is_parsed_invoice_object(parsed) -> bool:
-    """Detect legacy ParsedInvoice-style objects returned by pdf_parsing.parser."""
-    return all(hasattr(parsed, attr) for attr in ("po_number", "supplier", "amount", "status", "date"))
-
 def normalize_raw_invoice(data:dict) -> dict:
     """Normalizes the LiquidAI output for InvoiceValidator."""
 
@@ -88,21 +83,6 @@ def normalize_raw_invoice(data:dict) -> dict:
 
 
 def save_parsed_invoice(parsed):
-    if _is_parsed_invoice_object(parsed):
-        invoice = Invoice(
-            po_number=parsed.po_number,
-            matched_po_id=None,
-            vendor_name=parsed.supplier,
-            amount=parsed.amount,
-            status=parsed.status or "pending",
-            date_issued=parsed.date,
-            confidence_score=None,
-        )
-
-        db.session.add(invoice)
-        db.session.commit()
-        return invoice
-
     parsed = normalize_raw_invoice(parsed)
     parsed = InvoiceValidator.model_validate(parsed)
 
