@@ -1,24 +1,9 @@
+import re
 import pdfplumber
 from pathlib import Path
 from po_matching.ai_matcher import AIMatcher
-
-
-def _resolve_pdf_path(filepath):
-    path = Path(filepath)
-    if path.is_file():
-        return path
-
-    project_root = Path(__file__).resolve().parent.parent
-    candidates = [
-        project_root / "data" / "uploads" / path.name,
-        project_root / "data" / path.name,
-    ]
-
-    for candidate in candidates:
-        if candidate.is_file():
-            return candidate
-
-    raise FileNotFoundError(f"PDF not found: {filepath}")
+from datetime import datetime
+from models.parsed_invoice import ParsedInvoice
 
 
 def parse_invoice_pdf(filepath):
@@ -47,3 +32,49 @@ def parse_invoice_pdf(filepath):
 
     ai = AIMatcher()
     return ai.extract_invoice_from_text(raw_text)
+    with pdfplumber.open(filepath) as pdf:
+        text = pdf.pages[0].extract_text()
+
+    po_number = None
+    supplier = None
+    amount = None
+    status = None
+    date = None
+
+    for line in text.split("\n"):
+        line = line.strip()
+
+        if line.startswith("PO Number:"):
+            raw = line.split(":", 1)[1].strip()
+            try:
+                po_number = int(raw)
+            except ValueError:
+                pass
+
+        elif line.startswith("Supplier:"):
+            supplier = line.split(":", 1)[1].strip()
+
+        elif line.startswith("Amount:"):
+            raw = line.split(":", 1)[1].strip().replace("$", "").replace(",", "")
+            try:
+                amount = float(raw)
+            except ValueError:
+                pass
+
+        elif line.startswith("Status:"):
+            status = line.split(":", 1)[1].strip()
+
+        elif line.startswith("Date Issued:"):
+            raw = line.split(":", 1)[1].strip()
+            try:
+                date = datetime.strptime(raw, "%Y-%m-%d")
+            except ValueError:
+                date = None
+
+    return ParsedInvoice(
+        po_number=po_number,
+        supplier=supplier,
+        amount=amount,
+        status=status,
+        date=date,
+    )
