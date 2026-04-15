@@ -157,31 +157,32 @@ def upload_invoice():
         flash("Use the upload button on AP page to submit invoices.", "info")
         return redirect(url_for("ap"))
 
-    if "invoice_pdf" not in request.files:
+    files = request.files.getlist("invoice_pdf")
+    if not files or all(f.filename == "" for f in files):
         return redirect(url_for("ap"))
 
-    file = request.files["invoice_pdf"]
-    if not file or file.filename == "":
-        return redirect(url_for("ap"))
-
-    if not file.filename.lower().endswith(".pdf"):
-        return redirect(url_for("ap"))
-
-    filename = secure_filename(file.filename)
     upload_dir = os.path.join(app.root_path, "data", "uploads")
     os.makedirs(upload_dir, exist_ok=True)
-    pdf_path = os.path.join(upload_dir, filename)
-    file.save(pdf_path)
 
-    try:
-        invoice_string = parse_invoice_pdf(pdf_path)
+    for file in files:
+        if not file or file.filename == "":
+            continue
 
-        ## TODO: AI invoice extraction function call.
+        if not file.filename.lower().endswith(".pdf"):
+            continue
 
+        filename = secure_filename(file.filename)
+        pdf_path = os.path.join(upload_dir, filename)
+        file.save(pdf_path)
 
-    except Exception as e:
-        app.logger.error(f"Invoice extraction failed for {filename}: {e}")
-        flash(f"Could not process '{filename}': {e}", "error")
+        try:
+            invoice_string = parse_invoice_pdf(pdf_path)
+
+            ## TODO: AI invoice extraction function call.
+
+        except Exception as e:
+            app.logger.error(f"Invoice extraction failed for {filename}: {e}")
+            flash(f"Could not process '{filename}': {e}", "error")
 
     return redirect(url_for("ap"))
 
