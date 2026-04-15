@@ -288,7 +288,7 @@
 
 									<iframe
 										id="pdf-viewer"
-										class="w-full h-96 mt-4 border rounded-lg"
+										class="w-full h-[800px] mt-4 border rounded-lg"
 										src=""
 									>
 									</iframe>
@@ -372,8 +372,8 @@
 				</div>
 				<!-- end card -->
 
-				<a
-					href="/"
+				
+					<a href="/"
 					class="mt-6 inline-flex items-center px-4 py-2 text-sm font-medium rounded-md bg-white text-gray-900 shadow-sm ring-1 ring-gray-200 hover:bg-gray-50 no-underline decoration-transparent border-0 outline-none appearance-none"
 				>
 					Back to Home
@@ -472,10 +472,25 @@
 							viewer.src = pdfUrl || "";
 						});
 					});
+
+					document.addEventListener("click", function (e) {
+						if (!e.target.closest("#tab-2 tr[data-invoice-id]")) {
+							poRows.forEach((poRow) => {
+								poRow.classList.remove("bg-green-100");
+								poRow.style.display = "";
+							});
+							invoiceRows.forEach((invoiceRow) => {
+								invoiceRow.classList.remove("bg-blue-100");
+							});
+							if (poEmptyMessage) {
+								poEmptyMessage.classList.add("hidden");
+							}
+						}
+					});
 				</script>
 
-				{% endblock %}
 			</nav>
 		</div>
 	</div>
 </div>
+{% endblock %}
