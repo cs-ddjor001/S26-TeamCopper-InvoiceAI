@@ -10,11 +10,10 @@ with app.app_context():
     print(f"Parsing: {pdf_path}")
     parsed = parse_invoice_pdf(pdf_path)
 
-    print(f"  PO Number (extracted): {parsed.po_number}")
-    print(f"  Supplier:              {parsed.supplier}")
-    print(f"  Amount:                {parsed.amount}")
-    print(f"  Status:                {parsed.status}")
-    print(f"  Date Issued:           {parsed.date}")
+    print(f"  PO Number (extracted): {parsed.get('po_number')}")
+    print(f"  Supplier:              {parsed.get('vendor_name')}")
+    print(f"  Amount:                {parsed.get('total')}")
+    print(f"  Date Issued:           {parsed.get('date')}")
 
     invoice = save_parsed_invoice(parsed)
     print(
@@ -22,6 +21,6 @@ with app.app_context():
         f"PO number (doc): {invoice.po_number}, "
         f"Matched PO id: {invoice.matched_po_id}, "
         f"Confidence: {invoice.confidence_score}, "
-        f"Vendor id: {invoice.vendor}, "
+        f"Vendor name: {invoice.vendor_name}, "
         f"Invoice Date: {invoice.date_issued}"
     )
