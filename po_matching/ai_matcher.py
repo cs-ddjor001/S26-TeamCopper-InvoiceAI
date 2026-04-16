@@ -29,11 +29,20 @@ Return ONLY valid JSON with no additional text or markdown:
 }
 
 ## Field Notes
-- vendor_name: Look for "From:", "Sold by:", "Supplier:", "Bill From:", or the company
-  name at the top of the document.
-- po_number: Look for labels such as "PO #", "Purchase Order No.", "Customer PO",
-  "Your PO", "Your Reference", "Order No.", "Cust PO". This is the BUYER'S PO number,
-  NOT the invoice number.
+- vendor_name: The vendor is the company ISSUING (sending) this invoice — the seller.
+  Look for labels like "From:", "Sold by:", "Supplier:", "Bill From:", or a company name
+  in the sender/supplier section. Do NOT use the buyer's name as the vendor. "ADS" is
+  the buying company (the recipient of this invoice), not the vendor.
+- po_number: This is the BUYER'S internal purchase order number. Scan the ENTIRE document
+  before deciding — do not stop at the first number that looks like an order reference.
+  Priority order for labels (highest to lowest):
+    1. "Customer PO", "Cust PO", "Your PO", "Customer PO No.", "Cust PO #"
+    2. "PO #", "PO Number", "Purchase Order No.", "Purchase Order Number"
+    3. "Your Reference", "Customer Reference", "Ref #"
+  Do NOT use "Order Number", "Order No.", or "SO" (Sales Order) labels — these are the
+  SELLER'S internal order references, not the buyer's PO. If a label like "Order Number"
+  appears near the top of the document alongside an invoice number, it is almost certainly
+  a Sales Order number. Keep scanning the rest of the document for a "Customer PO" label.
 - invoice_number: Look for "Invoice #", "Invoice No.", "Invoice Number", "Inv #".
 - date: Use the invoice issue date (not payment due date). Convert to YYYY-MM-DD format.
 - If a field is not found in the document, use null.
@@ -127,7 +136,7 @@ class AIMatcher:
         """
         try:
             # Truncate to avoid blowing the context window on large PDFs
-            truncated = raw_text[:6000]
+            truncated = raw_text[:20000]
             response = self.client.chat.completions.create(
                 model="qwen",
                 messages=[
@@ -166,7 +175,7 @@ class AIMatcher:
                     {"role": "system", "content": MATCHING_SYSTEM_PROMPT},
                     {"role": "user", "content": user_prompt},
                 ],
-                max_tokens=500,
+                max_tokens=2048,
                 temperature=0.2,
             )
             raw = response.choices[0].message.content or ""
@@ -271,7 +280,7 @@ class AIMatcher:
             f"Could not parse model response as JSON. Raw response:\n{raw}"
         )
 
-def match_invoice_ai(invoice, top_n=10):
+def match_invoice_ai(invoice, top_n=20):
     """Run AI matching for an Invoice DB object.
 
     Pre-filters to the top N candidates by fuzzy score before calling the model,

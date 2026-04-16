@@ -1,6 +1,6 @@
 import sys
 from app import app
-from pdf_parsing.parser import parse_invoice_pdf
+from pdf_parsing.text_parser import parse_invoice_pdf
 from pdf_parsing.db_writer import save_parsed_invoice
 
 # Default to sample.pdf if no path given

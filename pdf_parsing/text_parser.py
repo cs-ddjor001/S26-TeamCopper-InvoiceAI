@@ -8,7 +8,7 @@ def _resolve_pdf_path(filepath):
     if path.is_file():
         return path
 
-    project_root = Path(file).resolve().parent.parent
+    project_root = Path(__file__).resolve().parent.parent
     candidates = [
         project_root / "data" / "uploads" / path.name,
         project_root / "data" / path.name,
