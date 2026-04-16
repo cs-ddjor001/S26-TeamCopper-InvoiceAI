@@ -1,7 +1,7 @@
 import pdfplumber
 from pathlib import Path
 from po_matching.ai_matcher import AIMatcher
-
+from utils.invoice_quality_score import compute_invoice_quality
 
 def _resolve_pdf_path(filepath):
     path = Path(filepath)

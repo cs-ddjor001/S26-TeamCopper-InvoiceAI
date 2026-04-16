@@ -2,7 +2,7 @@ from extensions import db
 from models.invoice import Invoice
 from models.matches import Match
 from po_matching.ai_matcher import match_invoice_ai
-
+from utils.invoice_quality_score import compute_invoice_quality
 
 def run_ai_matching():
     """Run AI-based matching on all unmatched invoices using the Qwen model.

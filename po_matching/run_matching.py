@@ -2,7 +2,7 @@ from extensions import db
 from models.invoice import Invoice
 from models.matches import Match
 from po_matching.matcher import match_invoice
-
+from utils.invoice_quality_score import compute_invoice_quality
 
 def run_matching():
     """Run deterministic matching on all unmatched invoices.
