@@ -34,6 +34,6 @@ def match_by_fields(invoice):
     added to the models later, update this query accordingly.
     """
     return Purchase_Order.query.filter_by(
-        vendor=invoice.vendor,
+        vendor_name=invoice.vendor_name,
         amount=invoice.amount,
     ).first()
