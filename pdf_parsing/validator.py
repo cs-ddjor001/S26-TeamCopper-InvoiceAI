@@ -5,10 +5,10 @@ from datetime import datetime
 
 
 class LineItem(BaseModel):
-    description: str
-    quantity: int
-    unit_price: float
-    total: float
+    description: Optional[str] = None
+    quantity: Optional[float] = None
+    unit_price: Optional[float] = None
+    total: Optional[float] = None
 
     @model_validator(mode="before")
     @classmethod
@@ -26,6 +26,14 @@ class LineItem(BaseModel):
     @field_validator("unit_price", "total", mode="before")
     @classmethod
     def parse_currency(cls, v):
+        if v is None: 
+            return None
+        if isinstance(v, (dict, list)):
+            return None
+        
+        if isinstance(v, (int, float)):
+            return float(v)
+        
         if isinstance(v, str):
             cleaned = v.replace("$", "").replace(",", "").strip()
             # If the AI misread a comma thousands separator as a period (e.g. "22.810.20"),
@@ -33,17 +41,20 @@ class LineItem(BaseModel):
             if cleaned.count(".") > 1:
                 parts = cleaned.rsplit(".", 1)
                 cleaned = parts[0].replace(".", "") + "." + parts[1]
-            return float(cleaned)
-        return v
+            try:
+                return float(cleaned)
+            except ValueError:
+                return None
+        return None
 
 
 class InvoiceValidator(BaseModel):
 
     # Validates the raw AI-generated invoice JSON and exposes clean, typed fields
-    invoice_number: str
+    invoice_number: Optional[str] = None
     vendor_name: Optional[str] = None
-    date: str
-    line_items: list[LineItem]
+    date: Optional[str] = None
+    line_items: list[LineItem] = []
     subtotal: Optional[float] = None
     tax: Optional[float] = None
     total: Optional[float] = None
@@ -115,6 +126,21 @@ class InvoiceValidator(BaseModel):
                 or data.get("job_number")
                 or data.get("job_no")
             )
+        if isinstance(data.get("po_number"), dict):
+            po_dict = data["po_number"] 
+            for key in (
+                "customer_po",
+                "po_number",
+                "po_no",
+                "po_num",
+                "order_number",
+                "reference",
+            ):
+                if key in po_dict and po_dict[key]:
+                    data["po_number"] = po_dict[key]
+                    break
+            else:
+                data["po_number"] = None
 
         # Total fallbacks
         if not data.get("total"):
@@ -128,15 +154,30 @@ class InvoiceValidator(BaseModel):
                 or data.get("net_due")
             )
 
+        # Making sure line_item key exists
+        if "line_items" not in data or data["line_items"] is None:
+            data["line_items"] = []
+
+        cleaned_items = []
+        for item in data.get("line_items", []):
+            if not isinstance(item, dict):
+                continue
+            for key in ("unit_price", "total", "quantity"):
+                if isinstance(item.get(key), dict):
+                    item[key] = None
+            cleaned_items.append(item)
+
+        data["line_items"] = cleaned_items
+        
         return data
 
-    @field_validator("date")
+    @field_validator("date", mode="before")
     @classmethod
-    def validate_date(cls, v: str) -> str:
-        if v is None:
-            raise ValueError("Date is required")
+    def validate_date(cls, v):
+        if not v:
+            return None
         # Already correct format
-        if re.match(r"^\d{4}-\d{2}-\d{2}$", v):
+        if isinstance(v, str) and re.match(r"^\d{4}-\d{2}-\d{2}$", v):
             return v
         # Try common formats the AI might return
         for fmt in (
@@ -151,9 +192,9 @@ class InvoiceValidator(BaseModel):
         ):
             try:
                 return datetime.strptime(v, fmt).strftime("%Y-%m-%d")
-            except ValueError:
+            except Exception:
                 continue
-        raise ValueError(f"Unrecognised date format: '{v}'")
+        return None
 
     @field_validator("total", "subtotal", "tax", mode="before")
     @classmethod
@@ -170,7 +211,7 @@ class InvoiceValidator(BaseModel):
             try:
                 return float(cleaned)
             except ValueError:
-                raise ValueError(f"Invalid currency value: '{v}'")
+                return None
         return None
 
     @field_validator("vendor_name", "invoice_number")
@@ -179,12 +220,12 @@ class InvoiceValidator(BaseModel):
         if v is None:
             return None
         if not v.strip():
-            raise ValueError("Field must not be empty")
+            return None
         return v.strip()
 
     # Convenience properties that map JSON fields to DB column names
     @property
-    def supplier(self) -> str:
+    def supplier(self) -> Optional[str]:
         return self.vendor_name
 
     @property
@@ -197,9 +238,9 @@ class InvoiceValidator(BaseModel):
 
     @property
     def po_number_int(self) -> Optional[int]:
-        if self.po_number and self.po_number.strip():
+        if self.po_number:
             try:
-                return int(self.po_number.strip())
+                return int(str(self.po_number).strip())
             except ValueError:
                 return None
         return None

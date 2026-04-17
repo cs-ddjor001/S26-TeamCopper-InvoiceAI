@@ -1,7 +1,7 @@
 import pdfplumber
 from pathlib import Path
 from po_matching.ai_matcher import AIMatcher
-
+from utils.invoice_quality_score import compute_invoice_quality
 
 def _resolve_pdf_path(filepath):
     path = Path(filepath)
@@ -46,4 +46,9 @@ def parse_invoice_pdf(filepath):
         )
 
     ai = AIMatcher()
-    return ai.extract_invoice_from_text(raw_text)
+    data = ai.extract_invoice_from_text(raw_text)
+
+    invoice_quality_score = compute_invoice_quality(data, raw_text)
+    data["invoice_quality_score"] = invoice_quality_score
+
+    return data

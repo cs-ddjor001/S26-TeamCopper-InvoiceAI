@@ -13,6 +13,8 @@ from .base import InvoiceExtractor
 
 from json_repair import repair_json
 
+from utils.invoice_quality_score import compute_invoice_quality
+
 SYSTEM_PROMPT = """\
 You are an invoice data extraction assistant. You will be given an image of an \
 invoice. Extract the following fields and return ONLY valid JSON with no \

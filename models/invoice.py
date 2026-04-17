@@ -12,6 +12,7 @@ class Invoice(db.Model):
     status = db.Column(db.String(50), default="pending")
     date_issued = db.Column(db.DateTime, nullable=True)
     confidence_score = db.Column(db.Float, nullable=True)
+    quality_score = db.Column(db.Integer, default=100)
 
     line_items = db.relationship("Invoice_Line_Item", backref="invoice", lazy=True)
 

@@ -61,8 +61,8 @@ def get_top_candidates(invoice, n=10):
         total_score += 0.50 * score_po
 
         score_vendor = fuzzy_score(
-            getattr(invoice, "vendor_name", None) or str(invoice.vendor),
-            getattr(po, "vendor_name", None) or str(po.vendor),
+            getattr(invoice, "vendor_name", None) or str(invoice.vendor_name),
+            getattr(po, "vendor_name", None) or str(po.vendor_name),
         )
         total_score += 0.15 * score_vendor
 
@@ -124,8 +124,8 @@ def match_by_fields_fuzzy(invoice, threshold=0.55):
 
         # Vendor (15% weight)
         score_vendor = fuzzy_score(
-            getattr(invoice, "vendor_name", None) or str(invoice.vendor),
-            getattr(po, "vendor_name", None) or str(po.vendor),
+            getattr(invoice, "vendor_name", None) or str(invoice.vendor_name),
+            getattr(po, "vendor_name", None) or str(po.vendor_name),
         )
         total_score += 0.15 * score_vendor
 
