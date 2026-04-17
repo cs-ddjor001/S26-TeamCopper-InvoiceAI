@@ -11,3 +11,5 @@ class Users(db.Model):
     creation_time = db.Column(db.Time, nullable=False)
     deactivation_time = db.Column(db.Time)
     enabled_in_queue = db.Column(db.Boolean, nullable=False)
+
+    vendors = db.relationship('Vendors', backref='user')
