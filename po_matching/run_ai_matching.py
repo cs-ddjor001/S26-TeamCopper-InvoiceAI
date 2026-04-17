@@ -11,9 +11,10 @@ def run_ai_matching():
     in run_matching.py. Running both allows direct comparison of approaches.
 
     For each unmatched invoice:
-        1. Send invoice + all POs to Qwen for semantic matching
-        2. If a confident match is returned, create a Match record
-        3. Update the invoice with the matched PO and confidence score
+        1. Send invoice + candidate POs to Qwen for semantic matching
+        2. Apply invoice quality score to the AI confidence
+        3. If a confident match is returned, create a Match record
+        4. Update the invoice with the matched PO and confidence score
 
     Raises:
         ConnectionError: If llama-server is not reachable.
@@ -24,9 +25,15 @@ def run_ai_matching():
     matched_count = 0
 
     for invoice in unmatched:
-        po, score = match_invoice_ai(invoice)
+        po, match_score = match_invoice_ai(invoice)
 
-        if po and score > 25:
+        if not po:
+            continue
+    
+        invoice_quality_score = invoice.quality_score or 100
+        final_score = round(match_score * (invoice_quality_score / 100))
+
+        if final_score > 25:
             existing = Match.query.filter_by(
                 invoice_id=invoice.id,
                 po_id=po.id,
@@ -34,14 +41,14 @@ def run_ai_matching():
 
             if existing is None:
                 match = Match(
-                    invoice_id=invoice.id,
-                    po_id=po.id,
-                    confidence_score=score,
+                    invoice_id = invoice.id,
+                    po_id = po.id,
+                    confidence_score = final_score,
                 )
                 db.session.add(match)
 
             invoice.matched_po_id = po.id
-            invoice.confidence_score = score
+            invoice.confidence_score = final_score
             invoice.status = "matched"
             matched_count += 1
 

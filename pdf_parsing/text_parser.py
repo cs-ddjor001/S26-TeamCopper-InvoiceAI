@@ -8,7 +8,7 @@ def _resolve_pdf_path(filepath):
     if path.is_file():
         return path
 
-    project_root = Path(file).resolve().parent.parent
+    project_root = Path(__file__).resolve().parent.parent
     candidates = [
         project_root / "data" / "uploads" / path.name,
         project_root / "data" / path.name,
@@ -46,4 +46,9 @@ def parse_invoice_pdf(filepath):
         )
 
     ai = AIMatcher()
-    return ai.extract_invoice_from_text(raw_text)
+    data = ai.extract_invoice_from_text(raw_text)
+
+    invoice_quality_score = compute_invoice_quality(data, raw_text)
+    data["invoice_quality_score"] = invoice_quality_score
+
+    return data

@@ -18,9 +18,14 @@ def run_matching():
     matched_count = 0
 
     for invoice in unmatched:
-        po, score = match_invoice(invoice)
+        po, match_score = match_invoice(invoice)
+        if not po:
+            continue
+        
+        invoice_quality_score = invoice.quality_score or 100
+        final_score = round(match_score * (invoice_quality_score / 100))
 
-        if po and score > 25:
+        if final_score > 25:
             # Check for existing match to prevent duplicates
             existing = Match.query.filter_by(
                 invoice_id=invoice.id,
@@ -29,15 +34,15 @@ def run_matching():
 
             if existing is None:
                 match = Match(
-                    invoice_id=invoice.id,
-                    po_id=po.id,
-                    confidence_score=score,
+                    invoice_id = invoice.id,
+                    po_id = po.id,
+                    confidence_score = final_score,
                 )
                 db.session.add(match)
 
             # Update the invoice with the best match
             invoice.matched_po_id = po.id
-            invoice.confidence_score = score
+            invoice.confidence_score = final_score
             invoice.status = "matched"
             matched_count += 1
 
