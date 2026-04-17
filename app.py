@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from flask import Flask, render_template, redirect, url_for, send_from_directory, request, flash
 from datetime import date, datetime
 import os
@@ -62,12 +64,20 @@ def dashboard():
     high_confidence = sum(1 for i in invoices if i.confidence_score is not None and i.confidence_score >= 80)
     vendor_names = sorted(set(i.vendor_name for i in invoices if i.vendor_name))
     vendor_count = len(vendor_names)
+    team_member = models.Users.query.all()
+    vendors = models.Vendors.query.all()
+    vendors_by_user = defaultdict(list)
+    for v in vendors:
+        if v.username:
+            vendors_by_user[v.username].append(v)
     return render_template("dashboard.html",
         invoices=invoices, purchase_orders=purchase_orders,
         pending_count=pending_count, completed_count=completed_count,
         total_value=total_value, avg_value=avg_value,
         low_confidence=low_confidence, med_confidence=med_confidence, high_confidence=high_confidence,
-        vendor_names=vendor_names, vendor_count=vendor_count)
+        vendor_names=vendor_names, vendor_count=vendor_count,
+        team_member=team_member,
+        vendors_by_user=vendors_by_user)
 
 
 @app.route("/run-matching", methods=["POST"])
