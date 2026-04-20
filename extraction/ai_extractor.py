@@ -10,7 +10,7 @@ from pdf_parsing.db_writer import save_parsed_invoice
 
 
 DEFAULT_BASE_URL = os.environ.get("LLAMA_SERVER_URL", "http://localhost:8080/v1")
-DEFAULT_MODEL = os.environ.get("LLAMA_MODEL", "qwen")
+DEFAULT_MODEL = "qwen"
 DEFAULT_OUTPUT_DIR = "./data/json_output"
 
 
@@ -77,22 +77,76 @@ Rules:
 class AIExtractor:
     def __init__(self, base_url: str | None = None, model: str | None = None):
         self.base_url = base_url or DEFAULT_BASE_URL
-        self.model = model or DEFAULT_MODEL
         self.client = OpenAI(base_url=self.base_url, api_key="not-needed")
 
+        configured_model = model or os.environ.get("LLAMA_MODEL")
+        self.model = self._resolve_model_id(configured_model)
+
+    @staticmethod
+    def _find_model_match(requested: str, model_ids: list[str]) -> str | None:
+        requested_norm = requested.strip().lower()
+        for model_id in model_ids:
+            if model_id.lower() == requested_norm:
+                return model_id
+
+        for model_id in model_ids:
+            model_norm = model_id.lower()
+            if requested_norm in model_norm or model_norm in requested_norm:
+                return model_id
+
+        return None
+
+    def _resolve_model_id(self, configured_model: str | None) -> str:
+        fallback_model = configured_model or DEFAULT_MODEL
+
+        try:
+            models = self.client.models.list()
+        except Exception:
+            return fallback_model
+
+        model_ids = [m.id for m in getattr(models, "data", []) if getattr(m, "id", None)]
+        if not model_ids:
+            return fallback_model
+
+        if configured_model:
+            matched = self._find_model_match(configured_model, model_ids)
+            if matched:
+                return matched
+
+            available = ", ".join(model_ids)
+            raise ValueError(
+                f"Configured model '{configured_model}' is not available at {self.base_url}. "
+                f"Available models: {available}."
+            )
+
+        return self._find_model_match("qwen", model_ids) or model_ids[0]
+
     def extract(self, invoice_json: dict, source_name: str | None = None) -> dict:
+        print("Extracting invoice data using AIExtractor extract method...")
+        invoices = self.extract_many(invoice_json, source_name=source_name)
+        return invoices[0]
+
+    def extract_many(
+        self, invoice_json: dict, source_name: str | None = None
+    ) -> list[dict]:
+        print("Extracting invoice data using AIExtractor extract_many method...")
         if not isinstance(invoice_json, dict):
             raise ValueError("Expected invoice_json to be a dictionary.")
 
         source_name = source_name or invoice_json.get("file") or "invoice_json"
-        user_prompt = self._build_user_prompt(invoice_json)
+        user_prompt = self._build_multi_user_prompt(invoice_json)
         raw_response = self._call_model(user_prompt)
-        data = self._parse_response(raw_response)
+        invoices = self._parse_multi_response(raw_response)
 
-        self._save_json(data, source_name)
-        invoice = save_parsed_invoice(data)
-        data["_invoice_id"] = invoice.id
-        return data
+        saved: list[dict] = []
+        for index, data in enumerate(invoices, start=1):
+            suffix = f"-part{index}" if len(invoices) > 1 else ""
+            self._save_json(data, f"{source_name}{suffix}")
+            invoice = save_parsed_invoice(data)
+            data["_invoice_id"] = invoice.id
+            saved.append(data)
+
+        return saved
 
     def _build_user_prompt(self, invoice_json: dict) -> str:
         payload = json.dumps(invoice_json, indent=2, ensure_ascii=False)
@@ -101,6 +155,34 @@ class AIExtractor:
 
         return (
             "Extract invoice data from this pdfplumber JSON:\n\n"
+            f"{payload}\n\n"
+            "/no_think"
+        )
+
+    def _build_multi_user_prompt(self, invoice_json: dict) -> str:
+        payload = json.dumps(invoice_json, indent=2, ensure_ascii=False)
+        if len(payload) > 20000:
+            payload = payload[:20000] + "\n\n[TRUNCATED FOR CONTEXT]"
+
+        return (
+            "Extract ALL invoices present in this pdfplumber JSON. "
+            "If the PDF contains multiple invoices, return one object per invoice. "
+            "Return only JSON in this exact shape:\n"
+            "{\n"
+            '  "invoices": [\n'
+            "    {\n"
+            '      "invoice_number": "string or null",\n'
+            '      "vendor_name": "string or null",\n'
+            '      "date": "YYYY-MM-DD or null",\n'
+            '      "line_items": [],\n'
+            '      "subtotal": number or null,\n'
+            '      "tax": number or null,\n'
+            '      "total": number or null,\n'
+            '      "po_number": "string or null"\n'
+            "    }\n"
+            "  ]\n"
+            "}\n\n"
+            "If only one invoice is present, return one item in the invoices array.\n\n"
             f"{payload}\n\n"
             "/no_think"
         )
@@ -141,10 +223,24 @@ class AIExtractor:
                 "Make sure llama-server is running."
             )
 
-        return response.choices[0].message.content or ""
+        raw_response = response.choices[0].message.content or ""
+        if not raw_response.strip():
+            raise ValueError(
+                "Model returned an empty response. Check that llama-server is "
+                f"running the expected model at {self.base_url}, that LLAMA_MODEL "
+                "matches the loaded model."
+            )
+
+        return raw_response
 
     @staticmethod
     def _parse_response(raw: str) -> dict:
+        if not raw or not raw.strip():
+            raise ValueError(
+                "Model returned no text content to parse as JSON. Verify the model "
+                "is producing a response and try again."
+            )
+
         try:
             repaired = repair_json(raw)
             repaired = repair_json(repaired)
@@ -174,6 +270,32 @@ class AIExtractor:
             f"Could not parse model response as JSON. Raw response:\n{raw}"
         )
 
+    def _parse_multi_response(self, raw: str) -> list[dict]:
+        parsed = self._parse_response(raw)
+
+        if isinstance(parsed, dict) and isinstance(parsed.get("invoices"), list):
+            invoices = [item for item in parsed["invoices"] if isinstance(item, dict)]
+            if not invoices:
+                raise ValueError("Model returned an empty invoices list.")
+            return invoices
+
+        if isinstance(parsed, list):
+            invoices = [item for item in parsed if isinstance(item, dict)]
+            if not invoices:
+                raise ValueError("Model returned a list with no invoice objects.")
+            return invoices
+
+        if isinstance(parsed, dict):
+            return [parsed]
+
+        raise ValueError("Model response was not a valid invoice object/list.")
+
 
 def extract_invoice_json(invoice_json: dict, source_name: str | None = None) -> dict:
     return AIExtractor().extract(invoice_json, source_name=source_name)
+
+
+def extract_invoices_json(
+    invoice_json: dict, source_name: str | None = None
+) -> list[dict]:
+    return AIExtractor().extract_many(invoice_json, source_name=source_name)

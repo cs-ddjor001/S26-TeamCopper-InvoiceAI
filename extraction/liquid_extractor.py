@@ -81,7 +81,7 @@ class LiquidExtractor(InvoiceExtractor):
     """Extracts invoice data using the Liquid AI vision model (LFM2.5-VL)
     served locally via llama-server's OpenAI-compatible API."""
 
-    def __init__(self, base_url: str | None = None, model: str = "liquid"):
+    def __init__(self, base_url: str | None = None, model: str = "qwen"):
         self.base_url = base_url or os.environ.get(
             "LLAMA_SERVER_URL", DEFAULT_BASE_URL
         )
@@ -89,6 +89,7 @@ class LiquidExtractor(InvoiceExtractor):
         self.client = OpenAI(base_url=self.base_url, api_key="not-needed")
 
     def extract(self, pdf_path: str) -> dict:
+        print("Extracting invoice data using LiquidExtractor...")
         """Extract structured invoice data from a PDF using the vision model.
 
         Args:
@@ -173,7 +174,14 @@ class LiquidExtractor(InvoiceExtractor):
                 "Make sure llama-server is running."
             )
 
-        return response.choices[0].message.content
+        raw_response = response.choices[0].message.content or ""
+        if not raw_response.strip():
+            raise ValueError(
+                "Model returned an empty response. Check that llama-server is "
+                f"running the expected model at {self.base_url}."
+            )
+
+        return raw_response
 
     @staticmethod
     def _parse_response(raw: str) -> dict:
@@ -182,6 +190,12 @@ class LiquidExtractor(InvoiceExtractor):
         Handles cases where the model wraps JSON in markdown code fences
         or includes extra text around the JSON object.
         """
+
+        if not raw or not raw.strip():
+            raise ValueError(
+                "Model returned no text content to parse as JSON. Verify the model "
+                "is producing a response and try again."
+            )
 
         # Try direct parse first
         try:
