@@ -51,7 +51,11 @@ python Purchase_order_writer/load_po_csv.py
 
 This is the required first step. It creates all database tables and loads the real ADS purchase order data from `data/ADS POs csvs/`. The app cannot run meaningfully without POs in the database.
 
-### 5. Run the app
+### 5. Start the model with llama
+
+llama-server --model ai_models/Qwen3.5-4B.Q4_K_S.gguf --mmproj ai_models/mmproj-BF16.gguf
+
+### 6. Run the app
 
 ```bash
 python app.py
@@ -59,7 +63,7 @@ python app.py
 flask run
 ```
 
-### 6. Usernames
+### 7. Usernames
 
 tom.ap
 sally.admin
@@ -68,12 +72,8 @@ jim.model
 
 ### 7. Upload Invoices
 
-After ensuring the liquid AI model is running (instructions below), use the Upload Invoice button to upload invoices,
+After ensuring the Qwen AI model is running (instructions below), use the Upload Invoice button to upload invoices,
 then run matching. 
-
-## Liquid AI Invoice Extraction (Vision Model)
-
-Uses the Liquid AI LFM2.5-VL-1.6B vision model to extract structured data from invoice PDFs via a locally-running llama-server.
 
 ### Prerequisites
 
@@ -83,16 +83,16 @@ Uses the Liquid AI LFM2.5-VL-1.6B vision model to extract structured data from i
    winget install llama.cpp
    ```
 
-2. Download the models from HuggingFace (LiquidAI/LFM2.5-VL-1.6B-GGUF):
-   - `LFM2.5-VL-1.6B-Q8_0.gguf` — main vision model
-   - `mmproj-LFM2.5-VL-1.6b-Q8_0.gguf` — multimodal projector ("eyes" that read images)
+2. Download the models from HuggingFace ([LiquidAI/LFM2.5-VL-1.6B-GGUF](https://huggingface.co/Jackrong/Qwen3.5-4B-Claude-4.6-Opus-Reasoning-Distilled-GGUF/tree/main)):
+   - Qwen3.5-4B.Q4_K_S.gguf
+   - mmproj-BF16.gguf
 
    Place both in the `ai_models/` directory.
 
 3. Start the llama server:
 
    ```bash
-   llama-server --model ai_models/LFM2.5-VL-1.6B-Q8_0.gguf --mmproj ai_models/mmproj-LFM2.5-VL-1.6b-Q8_0.gguf --port 8080
+   llama-server --model ai_models/Qwen3.5-4B.Q4_K_S.gguf --mmproj ai_models/mmproj-BF16.gguf --port 8080
    ```
 
 ### Usage
