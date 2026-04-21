@@ -77,7 +77,7 @@ USER_PROMPT = "Extract all invoice data from this image and return it as JSON."
 DEFAULT_BASE_URL = "http://localhost:8080/v1"
 
 
-class LiquidExtractor(InvoiceExtractor):
+class VisionExtractor(InvoiceExtractor):
     """Extracts invoice data using the Liquid AI vision model (LFM2.5-VL)
     served locally via llama-server's OpenAI-compatible API."""
 
@@ -89,7 +89,7 @@ class LiquidExtractor(InvoiceExtractor):
         self.client = OpenAI(base_url=self.base_url, api_key="not-needed")
 
     def extract(self, pdf_path: str) -> dict:
-        print("Extracting invoice data using LiquidExtractor...")
+        print("Extracting invoice data using VisionExtractor...")
         """Extract structured invoice data from a PDF using the vision model.
 
         Args:

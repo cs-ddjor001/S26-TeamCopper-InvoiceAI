@@ -10,7 +10,7 @@ import json
 import sys
 
 from app import app
-from extraction import LiquidExtractor
+from extraction import VisionExtractor
 
 
 def main():
@@ -19,7 +19,7 @@ def main():
         sys.exit(1)
 
     pdf_path = sys.argv[1]
-    extractor = LiquidExtractor()
+    extractor = VisionExtractor()
 
     print(f"Extracting data from: {pdf_path}")
     print(f"Using server at: {extractor.base_url}")

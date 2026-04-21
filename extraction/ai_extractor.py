@@ -20,57 +20,55 @@ from a PDF invoice by pdfplumber. The JSON contains page text and tables.
 Extract the invoice fields and return ONLY valid JSON with no additional text,
 no markdown fences, and no explanation.
 
-Required JSON structure:
+## Output Format
+Return ONLY valid JSON with no additional text or markdown:
 {
-  "invoice_number": "string or null",
-  "vendor_name": "string or null",
-  "date": "string in YYYY-MM-DD format or null",
+  "invoice_number": "string (required — the seller's invoice ID)",
+  "vendor_name": "string — the company issuing/sending the invoice",
+  "date": "YYYY-MM-DD — invoice issue date",
+  "po_number": "string or null — the BUYER'S purchase order number referenced on this invoice",
+  "subtotal": number or null,
+  "tax": number or null,
+  "total": number or null,
   "line_items": [
     {
-      "description": "string",
+      "description": "string — part name or description",
       "quantity": number,
       "unit_price": number,
       "total": number
     }
-  ],
-  "subtotal": number or null,
-  "tax": number or null,
-  "total": number or null,
-  "po_number": "string or null"
+  ]
 }
 
-Field extraction guidance:
-
-"vendor_name": The company or person sending/issuing the invoice (the seller or
-supplier). Look for labels like: Vendor, Supplier, From, Bill From, Remit To,
-Sold By, Seller, Ship From, Company Name. Do NOT use the buyer/customer name.
-If you find a vendor named ADS, ignore it and keep looking.
-
-"po_number": The purchase order reference number. This field may be labeled on
-the invoice as any of the following — always map it to "po_number":
-  PO Number, PO #, PO No, P.O. Number, P.O. #, Purchase Order, Purchase Order Number,
-  Purchase Order No, Customer PO, Customer PO Number, Customer PO #, Customer PO No,
-  Customer P.O., Cust PO, Cust PO #, Customer Reference, Customer Ref, Cust Ref,
-  Your Reference, Your Ref, Order Reference, Order Ref, Reference Number, Ref No,
-  Reference, Client Reference, Client Ref, Client PO, Buyer Reference, Buyer PO,
-  Order Number, Order No, Contract Number, Contract No, Job Number, Job No.
-If the invoice contains a value under ANY of these labels, place it in "po_number".
-If multiple such labels are present, prefer the one most clearly labeled as a
-purchase order number.
-
-"total": The final amount due on the invoice. May be labeled: Total, Total Due,
-Total Amount Due, Amount Due, Invoice Total, Balance Due, Grand Total, Net Due.
-
-"date": The invoice issue date (not due date). May be labeled: Date, Invoice Date,
-Date Issued, Issue Date.
-
-Rules:
+## Field Notes
+- vendor_name: The vendor is the company ISSUING (sending) this invoice — the seller.
+  Look for labels like "From:", "Sold by:", "Supplier:", "Bill From:", or a company name
+  in the sender/supplier section. Do NOT use the buyer's name as the vendor. The buying
+  company is ADS — any variation of this name (ADS, ADS Inc, Atlantic Diving Supply,
+  ATLANTIC DIVING SUPPLY, ADS LLC, etc.) is the BUYER, not the vendor. Never use any
+  ADS variation as the vendor_name.
+- po_number: This is the BUYER'S internal purchase order number. All valid PO numbers
+  in this system are EXACTLY 7 digits. This is a hard rule — if a number is not 7 digits,
+  it is NOT a PO number regardless of its label.
+  Scan the ENTIRE document before deciding. If you find multiple 7-digit candidates,
+  prefer the one with the highest-priority label below.
+  Known labels for the buyer's PO number, from most to least common:
+    "P.O. Number", "Customer PO", "Customer PO No.", "Customer PO #", "Your Order",
+    "Your Reference", "PO Number", "Purchase Order Number", "Purchase Order No.",
+    "Customer P.O.", "Customer Order Number", "Customer PO Nbr", "PO No", "PO No.",
+    "Purchase Order", "Customer Purchase Order", "Buyer Reference", "PO", "PO #",
+    "P.O. No.", "Your Order No."
+  Do NOT extract numbers under these labels — they are the SELLER'S internal references,
+  not the buyer's PO: "Order Number", "Order No.", "Order #", "SO", "SO Number",
+  "Sales Order", "Sales Order No.", "Invoice No.", "Invoice Number", "Reference No."
+  If a document has multiple valid 7-digit PO numbers under different labels, return the
+  one with the highest-priority label from the list above.
+- invoice_number: Look for "Invoice #", "Invoice No.", "Invoice Number", "Inv #".
+- date: Use the invoice issue date (not payment due date). Convert to YYYY-MM-DD format.
 - All monetary values must be numbers (not strings). Remove currency symbols and commas.
-- For line items, "total" is the line total (quantity × unit_price). It may be
-  labeled: Total, Amount, Extended Amount, Line Total, Ext. Price.
-- If a field is not present on the invoice, set it to null.
+- If a field is not found in the document, use null.
 - If there are no line items, return an empty list for "line_items".
-- Return ONLY the JSON object. No extra text.\
+- Do not invent or infer values that are not clearly present in the text.\
 """
 
 
@@ -120,6 +118,13 @@ class AIExtractor:
             )
 
         return self._find_model_match("qwen", model_ids) or model_ids[0]
+
+    def extract_data(self, invoice_json: dict) -> dict:
+        """Extract invoice data and return as a dict without saving to the database."""
+        user_prompt = self._build_multi_user_prompt(invoice_json)
+        raw_response = self._call_model(user_prompt)
+        invoices = self._parse_multi_response(raw_response)
+        return invoices[0]
 
     def extract(self, invoice_json: dict, source_name: str | None = None) -> dict:
         print("Extracting invoice data using AIExtractor extract method...")
@@ -215,7 +220,7 @@ class AIExtractor:
                     {"role": "user", "content": user_prompt},
                 ],
                 temperature=0.1,
-                max_tokens=2048,
+                max_tokens=8192,
             )
         except APIConnectionError:
             raise ConnectionError(
@@ -235,35 +240,35 @@ class AIExtractor:
 
     @staticmethod
     def _parse_response(raw: str) -> dict:
-        if not raw or not raw.strip():
+        # Strip Qwen3 thinking blocks before attempting JSON parse.
+        # Handle both closed tags and unclosed tags (model hit token limit mid-thought).
+        raw = re.sub(r"<think>.*?</think>", "", raw, flags=re.DOTALL).strip()
+        raw = re.sub(r"<think>.*$", "", raw, flags=re.DOTALL).strip()
+
+        if not raw:
             raise ValueError(
-                "Model returned no text content to parse as JSON. Verify the model "
-                "is producing a response and try again."
+                "Model returned an empty response after stripping thinking blocks. "
+                "The model likely hit the token limit during its thinking phase and "
+                "never produced JSON output. Try increasing max_tokens or simplifying the input."
             )
 
         try:
-            repaired = repair_json(raw)
-            repaired = repair_json(repaired)
-            return json.loads(repaired)
-        except json.JSONDecodeError:
+            return json.loads(repair_json(raw))
+        except (json.JSONDecodeError, ValueError):
             pass
 
         fenced = re.search(r"```(?:json)?\s*\n?(.*?)\n?\s*```", raw, re.DOTALL)
         if fenced:
             try:
-                repaired = repair_json(fenced.group(1))
-                repaired = repair_json(repaired)
-                return json.loads(repaired)
-            except json.JSONDecodeError:
+                return json.loads(repair_json(fenced.group(1)))
+            except (json.JSONDecodeError, ValueError):
                 pass
 
         brace_match = re.search(r"\{.*\}", raw, re.DOTALL)
         if brace_match:
             try:
-                repaired = repair_json(brace_match.group(0))
-                repaired = repair_json(repaired)
-                return json.loads(repaired)
-            except json.JSONDecodeError:
+                return json.loads(repair_json(brace_match.group(0)))
+            except (json.JSONDecodeError, ValueError):
                 pass
 
         raise ValueError(

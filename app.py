@@ -50,7 +50,7 @@ import models
 from po_matching.run_matching import run_matching
 from werkzeug.utils import secure_filename
 from extraction.ai_extractor import extract_invoices_json
-from extraction.liquid_extractor import LiquidExtractor
+from extraction.vision_extractor import VisionExtractor
 from extraction.pdfplumber_extractor import extract_invoice_pdf
 
 
@@ -194,7 +194,7 @@ def upload_invoice():
             if _is_text_based_pdf(pdf_json):
                 results = extract_invoices_json(pdf_json, source_name=filename)
             else:
-                results = [LiquidExtractor().extract(pdf_path)]
+                results = [VisionExtractor().extract(pdf_path)]
 
             for result in results:
                 invoice_id = result.get("_invoice_id")

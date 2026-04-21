@@ -4,51 +4,6 @@ import re
 from openai import OpenAI, APIConnectionError
 from json_repair import repair_json
 
-EXTRACTION_SYSTEM_PROMPT = """\
-You are an invoice data extraction assistant. You will receive raw text extracted
-from an invoice PDF. Your task is to parse this text and return structured JSON.
-
-## Output Format
-Return ONLY valid JSON with no additional text or markdown:
-{
-  "invoice_number": "string (required — the seller's invoice ID)",
-  "vendor_name": "string — the company issuing/sending the invoice",
-  "date": "YYYY-MM-DD — invoice issue date",
-  "po_number": "string or null — the BUYER'S purchase order number referenced on this invoice",
-  "subtotal": number or null,
-  "tax": number or null,
-  "total": number or null,
-  "line_items": [
-    {
-      "description": "string — part name or description",
-      "quantity": number,
-      "unit_price": number,
-      "total": number
-    }
-  ]
-}
-
-## Field Notes
-- vendor_name: The vendor is the company ISSUING (sending) this invoice — the seller.
-  Look for labels like "From:", "Sold by:", "Supplier:", "Bill From:", or a company name
-  in the sender/supplier section. Do NOT use the buyer's name as the vendor. "ADS" is
-  the buying company (the recipient of this invoice), not the vendor.
-- po_number: This is the BUYER'S internal purchase order number. Scan the ENTIRE document
-  before deciding — do not stop at the first number that looks like an order reference.
-  Priority order for labels (highest to lowest):
-    1. "Customer PO", "Cust PO", "Your PO", "Customer PO No.", "Cust PO #"
-    2. "PO #", "PO Number", "Purchase Order No.", "Purchase Order Number"
-    3. "Your Reference", "Customer Reference", "Ref #"
-  Do NOT use "Order Number", "Order No.", or "SO" (Sales Order) labels — these are the
-  SELLER'S internal order references, not the buyer's PO. If a label like "Order Number"
-  appears near the top of the document alongside an invoice number, it is almost certainly
-  a Sales Order number. Keep scanning the rest of the document for a "Customer PO" label.
-- invoice_number: Look for "Invoice #", "Invoice No.", "Invoice Number", "Inv #".
-- date: Use the invoice issue date (not payment due date). Convert to YYYY-MM-DD format.
-- If a field is not found in the document, use null.
-- Do not invent or infer values that are not clearly present in the text.\
-"""
-
 MATCHING_SYSTEM_PROMPT = """\
 You are an invoice-to-PO matching assistant. You will receive:
 1. Extracted invoice data (from a parsed PDF)
@@ -125,37 +80,6 @@ class AIMatcher:
         self.base_url = base_url or DEFAULT_BASE_URL
         self.client = OpenAI(base_url=self.base_url, api_key="not-needed")
 
-    def extract_invoice_from_text(self, raw_text: str) -> dict:
-        """Use Qwen to structure raw PDF text into a dict for InvoiceValidator.
-
-        Args:
-            raw_text: Raw text extracted from an invoice PDF.
-
-        Returns:
-            Dict with keys matching the InvoiceValidator schema.
-        """
-        try:
-            # Truncate to avoid blowing the context window on large PDFs
-            truncated = raw_text[:20000]
-            response = self.client.chat.completions.create(
-                model="qwen",
-                messages=[
-                    {"role": "system", "content": EXTRACTION_SYSTEM_PROMPT},
-                    # /no_think tells Qwen3 to skip the thinking phase in llama.cpp
-                    {"role": "user", "content": f"Extract invoice data from this text:\n\n{truncated}\n\n/no_think"},
-                ],
-                max_tokens=2048,
-                temperature=0.1,
-            )
-            raw = response.choices[0].message.content or ""
-            return self._parse_response(raw)
-
-        except APIConnectionError:
-            raise ConnectionError(
-                f"Cannot connect to llama-server at {self.base_url}. "
-                "Make sure llama-server is running."
-            )
-
     def match_invoice_to_po(self, invoice_data: dict, candidate_pos: list) -> dict:
         """Match extracted invoice data against candidate POs.
 
@@ -175,7 +99,7 @@ class AIMatcher:
                     {"role": "system", "content": MATCHING_SYSTEM_PROMPT},
                     {"role": "user", "content": user_prompt},
                 ],
-                max_tokens=2048,
+                max_tokens=8192,
                 temperature=0.2,
             )
             raw = response.choices[0].message.content or ""

@@ -1,7 +1,8 @@
-import pdfplumber
 from pathlib import Path
-from po_matching.ai_matcher import AIMatcher
+from extraction.pdfplumber_extractor import extract_invoice_pdf as extract_pdf_json
+from extraction.ai_extractor import AIExtractor
 from utils.invoice_quality_score import compute_invoice_quality
+
 
 def _resolve_pdf_path(filepath):
     path = Path(filepath)
@@ -33,20 +34,16 @@ def parse_invoice_pdf(filepath):
         ConnectionError: If llama-server is not reachable.
     """
     resolved_path = _resolve_pdf_path(filepath)
+    invoice_json = extract_pdf_json(str(resolved_path))
 
-    with pdfplumber.open(str(resolved_path)) as pdf:
-        pages_text = [page.extract_text() or "" for page in pdf.pages]
-
-    raw_text = "\n\n".join(pages_text).strip()
-
+    raw_text = "\n\n".join(p["text"] for p in invoice_json["pages"]).strip()
     if not raw_text:
         raise ValueError(
             f"No text could be extracted from {resolved_path.name}. "
             "The PDF may be image-based (scanned). Only text-based PDFs are supported."
         )
 
-    ai = AIMatcher()
-    data = ai.extract_invoice_from_text(raw_text)
+    data = AIExtractor().extract_data(invoice_json)
 
     invoice_quality_score = compute_invoice_quality(data, raw_text)
     data["invoice_quality_score"] = invoice_quality_score
