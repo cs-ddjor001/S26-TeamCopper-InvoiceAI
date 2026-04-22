@@ -6,6 +6,7 @@ from flask import (
     send_from_directory,
     request,
     flash,
+    jsonify,
 )
 from datetime import date, datetime
 import os
@@ -206,6 +207,35 @@ def upload_invoice():
             flash(f"Could not process '{filename}': {e}", "error")
 
     return redirect(url_for("ap"))
+
+
+@app.route("/system-stats")
+def system_stats():
+    import psutil
+    cpu_percent = psutil.cpu_percent(interval=0.5)
+    memory = psutil.virtual_memory()
+    stats = {
+        "cpu_percent": cpu_percent,
+        "memory_percent": memory.percent,
+        "memory_used_gb": round(memory.used / (1024**3), 1),
+        "memory_total_gb": round(memory.total / (1024**3), 1),
+    }
+    try:
+        import GPUtil
+        gpus = GPUtil.getGPUs()
+        if gpus:
+            gpu = gpus[0]
+            stats["gpu_percent"] = round(gpu.load * 100, 1)
+            stats["gpu_memory_used_mb"] = round(gpu.memoryUsed)
+            stats["gpu_memory_total_mb"] = round(gpu.memoryTotal)
+            stats["gpu_name"] = gpu.name
+        else:
+            stats["gpu_percent"] = None
+            stats["gpu_name"] = "No GPU detected"
+    except ImportError:
+        stats["gpu_percent"] = None
+        stats["gpu_name"] = "GPUtil not installed"
+    return jsonify(stats)
 
 
 if __name__ == "__main__":

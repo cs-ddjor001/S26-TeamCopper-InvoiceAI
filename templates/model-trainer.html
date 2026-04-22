@@ -16,6 +16,7 @@
         <button onclick="showTab(1)" id="btn1" class="px-4 py-2 text-sm font-medium rounded-full border-0 outline-none cursor-pointer bg-indigo-600 text-white">Model Overview</button>
         <button onclick="showTab(2)" id="btn2" class="px-4 py-2 text-sm font-medium rounded-full border-0 outline-none cursor-pointer bg-gray-100 text-gray-800">Training &amp; Retraining</button>
         <button onclick="showTab(3)" id="btn3" class="px-4 py-2 text-sm font-medium rounded-full border-0 outline-none cursor-pointer bg-gray-100 text-gray-800">Accuracy &amp; Performance</button>
+        <button onclick="showTab(4)" id="btn4" class="px-4 py-2 text-sm font-medium rounded-full border-0 outline-none cursor-pointer bg-gray-100 text-gray-800">System Resources</button>
       </div>
 
       <div class="p-6">
@@ -162,6 +163,37 @@
           </div>
         </div>
 
+        <div id="tab4" style="display:none">
+          <h2 class="text-lg font-semibold text-gray-900">System Resources</h2>
+          <p class="text-sm text-gray-500 mt-1">Live CPU and GPU utilization</p>
+
+          <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
+              <p class="text-sm text-gray-500">CPU Usage</p>
+              <p class="text-2xl font-semibold mt-2" id="cpu-percent">--</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
+              <p class="text-sm text-gray-500">Memory Usage</p>
+              <p class="text-2xl font-semibold mt-2" id="mem-percent">--</p>
+              <p class="text-xs text-gray-400 mt-1" id="mem-detail">--</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
+              <p class="text-sm text-gray-500">GPU Usage</p>
+              <p class="text-2xl font-semibold mt-2" id="gpu-percent">--</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
+              <p class="text-sm text-gray-500">GPU</p>
+              <p class="text-2xl font-semibold mt-2 text-base" id="gpu-name">--</p>
+              <p class="text-xs text-gray-400 mt-1" id="gpu-mem-detail">--</p>
+            </div>
+          </div>
+
+          <div class="mt-6 bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
+            <h3 class="text-sm font-semibold text-gray-900 mb-3">CPU &amp; GPU Usage Over Time</h3>
+            <canvas id="resourceChart" height="100"></canvas>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -171,13 +203,21 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+var resourceChart = null;
+var resourceInterval = null;
+var cpuData = [];
+var gpuData = [];
+var resourceLabels = [];
+
 function showTab(n) {
   document.getElementById('tab1').style.display = 'none';
   document.getElementById('tab2').style.display = 'none';
   document.getElementById('tab3').style.display = 'none';
+  document.getElementById('tab4').style.display = 'none';
   document.getElementById('btn1').className = 'px-4 py-2 text-sm font-medium rounded-full border-0 outline-none cursor-pointer bg-gray-100 text-gray-800';
   document.getElementById('btn2').className = 'px-4 py-2 text-sm font-medium rounded-full border-0 outline-none cursor-pointer bg-gray-100 text-gray-800';
   document.getElementById('btn3').className = 'px-4 py-2 text-sm font-medium rounded-full border-0 outline-none cursor-pointer bg-gray-100 text-gray-800';
+  document.getElementById('btn4').className = 'px-4 py-2 text-sm font-medium rounded-full border-0 outline-none cursor-pointer bg-gray-100 text-gray-800';
   document.getElementById('tab' + n).style.display = 'block';
   document.getElementById('btn' + n).className = 'px-4 py-2 text-sm font-medium rounded-full border-0 outline-none cursor-pointer bg-indigo-600 text-white';
   if (n === 3 && !document.getElementById('accuracyChart').dataset.drawn) {
@@ -193,6 +233,48 @@ function showTab(n) {
       options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true,padding:16,font:{size:12}}}}}
     });
   }
+  if (n === 4) {
+    if (!resourceChart) {
+      resourceChart = new Chart(document.getElementById('resourceChart'), {
+        type:'line', data:{labels:resourceLabels,datasets:[
+          {label:'CPU %',data:cpuData,borderColor:'#6366f1',tension:0.3,fill:false,pointRadius:2},
+          {label:'GPU %',data:gpuData,borderColor:'#22c55e',tension:0.3,fill:false,pointRadius:2}
+        ]}, options:{responsive:true,animation:{duration:0},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,padding:20,font:{size:12}}}},scales:{y:{min:0,max:100,ticks:{callback:function(v){return v+'%'}},grid:{color:'#f1f5f9'}},x:{grid:{display:false}}}}
+      });
+    }
+    if (!resourceInterval) {
+      fetchStats();
+      resourceInterval = setInterval(fetchStats, 2000);
+    }
+  } else {
+    if (resourceInterval) {
+      clearInterval(resourceInterval);
+      resourceInterval = null;
+    }
+  }
+}
+
+function fetchStats() {
+  fetch('/system-stats').then(function(r){return r.json()}).then(function(data) {
+    document.getElementById('cpu-percent').textContent = data.cpu_percent + '%';
+    document.getElementById('mem-percent').textContent = data.memory_percent + '%';
+    document.getElementById('mem-detail').textContent = data.memory_used_gb + ' / ' + data.memory_total_gb + ' GB';
+    document.getElementById('gpu-percent').textContent = data.gpu_percent !== null ? data.gpu_percent + '%' : 'N/A';
+    document.getElementById('gpu-name').textContent = data.gpu_name || '--';
+    document.getElementById('gpu-mem-detail').textContent = data.gpu_memory_used_mb ? data.gpu_memory_used_mb + ' / ' + data.gpu_memory_total_mb + ' MB' : '--';
+
+    var now = new Date();
+    var label = now.getMinutes().toString().padStart(2,'0') + ':' + now.getSeconds().toString().padStart(2,'0');
+    resourceLabels.push(label);
+    cpuData.push(data.cpu_percent);
+    gpuData.push(data.gpu_percent !== null ? data.gpu_percent : 0);
+    if (resourceLabels.length > 30) {
+      resourceLabels.shift();
+      cpuData.shift();
+      gpuData.shift();
+    }
+    if (resourceChart) resourceChart.update();
+  });
 }
 </script>
 
