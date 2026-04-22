@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from flask import Flask, render_template, redirect, url_for, send_from_directory, request, flash
+from flask import Flask, render_template, redirect, url_for, send_from_directory, request, flash, jsonify
 from datetime import date, datetime
 import os
 import shutil
@@ -45,11 +45,52 @@ from po_matching.run_matching import run_matching
 from extraction.liquid_extractor import LiquidExtractor
 from werkzeug.utils import secure_filename
 
+SPECIAL_ROUTES = {
+    "sally.admin": "/dashboard",
+    "tom.ap":      "/ap",                 #remember
+    "jim.model":   "/model-trainer",
+}
 
 @app.route("/")
-def home():
+def home():  
     return render_template("index.html")
 
+@app.route("/login")
+def login():
+    username = request.args.get("username", "").strip().lower()
+    if not username:
+        return jsonify({"error": "Please enter a username."}), 400
+ 
+    # Special users bypass DB check entirely
+    if username in SPECIAL_ROUTES:
+        return jsonify({"redirect": SPECIAL_ROUTES[username]})
+ 
+    # Everyone else must exist in the DB as an active user
+    user = models.Users.query.filter_by(username=username, active=True).first()
+    if not user:
+        return jsonify({"error": f"No active account found for '{username}'."}), 404
+ 
+    return jsonify({"redirect": f"/ap/{username}"})
+
+@app.route("/ap")
+@app.route("/ap/<username>")
+def ap(username=None):
+    invoices = models.Invoice.query.all()
+    purchase_orders = models.Purchase_Order.query.all()
+ 
+    user = None
+    vendors = []
+    if username:
+        user = models.Users.query.filter_by(username=username, active=True).first_or_404()
+        vendors = models.Vendors.query.filter_by(username=username).all()
+ 
+    return render_template(
+        "ap.html",
+        invoices=invoices,
+        purchase_orders=purchase_orders,
+        user=user,
+        vendors=vendors,
+    )
 
 @app.route("/dashboard")
 def dashboard():
@@ -85,14 +126,6 @@ def trigger_matching():
     run_matching()
     return redirect(url_for("ap"))
 
-
-@app.route("/ap")
-def ap():
-    invoices = models.Invoice.query.all()
-    purchase_orders = models.Purchase_Order.query.all()
-    return render_template(
-        "ap.html", invoices=invoices, purchase_orders=purchase_orders
-    )
 
 @app.route("/model-trainer")
 def model_trainer():

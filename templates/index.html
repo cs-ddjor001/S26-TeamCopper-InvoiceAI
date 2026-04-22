@@ -25,28 +25,32 @@
 </div>
 
 <script>
+	/*
 	const routeByUser = {
 		"sally.admin": "/dashboard",
 		"tom.ap": "/ap",
 		"jim.model": "/model-trainer",
 	};
+	*/ 
 
 	document
 		.getElementById("login-form")
-		.addEventListener("submit", function (event) {
+		.addEventListener("submit", async function (event) {
 			event.preventDefault();
 
-			const usernameInput = document.getElementById("username");
-			const errorEl = document.getElementById("login-error");
-			const username = usernameInput.value.trim().toLowerCase();
-
-			if (routeByUser[username]) {
-				window.location.href = routeByUser[username];
-				return;
+			const username = document.getElementById("username").value.trim().toLowerCase();
+        	const errorEl  = document.getElementById("login-error");
+        	errorEl.classList.add("hidden");
+ 
+        	const res  = await fetch(`/login?username=${encodeURIComponent(username)}`);
+        	const data = await res.json();
+ 
+			if (data.redirect) {
+				window.location.href = data.redirect;
+			} else {
+				errorEl.textContent = data.error || "Unknown username.";
+				errorEl.classList.remove("hidden");
 			}
-
-			errorEl.textContent = "Unknown username. Try sally.admin or tom.ap."; //, or jim.model.";
-			errorEl.classList.remove("hidden");
 		});
 </script>
 

@@ -4,10 +4,14 @@
 	<div class="max-w-8xl mx-auto px-6 py-8">
 		<div>
 			<h1 class="text-2xl font-semibold text-gray-900">
-				Invoice Processing System
+				{% if user %}
+				 Welcome, <em>{{ user.display_name or user.username }}</em>
+				{% else %}
+				 Welcome
+				{% endif %}
 			</h1>
 			<p class="text-gray-600 mt-1">
-				Upload, extract, and match invoices with purchase orders
+				Invoice Processing System
 			</p>
 
 			<nav class="mt-5 w-full">
@@ -167,6 +171,39 @@
 									</div>
 								</div>
 							</div>
+						</div>
+
+						<div class="mt-6 bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
+							<div class="flex items-center justify-between mb-4">
+								<h2 class="text-lg font-semibold text-gray-900">Assigned Vendors</h2>
+								<span class="bg-blue-50 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full">
+									{{ vendors | length }} vendor{% if vendors | length != 1 %}s{% endif %}
+								</span>
+							</div>
+							{% if vendors %}
+								<div class="overflow-hidden border border-gray-200 rounded-lg">
+									<div class="max-h-48 overflow-y-auto">
+										<table class="min-w-full divide-y divide-gray-200 text-base">
+											<thead class="bg-gray-50 sticky top-0">
+												<tr>
+													<th class="px-4 py-3 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">Vendor Name</th>
+													<th class="px-4 py-3 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">ID</th>
+												</tr>
+											</thead>
+											<tbody class="divide-y divide-gray-100 bg-white">
+												{% for vendor in vendors %}
+												<tr class="hover:bg-gray-50">
+													<td class="px-4 py-3 text-gray-900 font-medium">{{ vendor.name }}</td>
+													<td class="px-4 py-3 text-gray-700">#{{ vendor.id }}</td>
+												</tr>
+												{% endfor %}
+											</tbody>
+										</table>
+									</div>
+								</div>
+							{% else %}
+								<p class="text-med text-gray-400 text-center py-6">No vendors assigned. Contact your administrator.</p>
+							{% endif %}
 						</div>
 
 						<!--Tab 2 Content-->
