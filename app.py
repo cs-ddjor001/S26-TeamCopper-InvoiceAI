@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from flask import (
     Flask,
     render_template,
