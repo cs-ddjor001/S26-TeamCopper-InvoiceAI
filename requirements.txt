@@ -9,3 +9,5 @@ PyMuPDF
 json-repair
 pydantic
 rapidfuzz
+psutil
+GPUtil
