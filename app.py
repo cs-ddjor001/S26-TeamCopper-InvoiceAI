@@ -51,6 +51,7 @@ app.jinja_env.filters["format_datetime"] = format_datetime
 
 import models
 from po_matching.run_matching import run_matching
+from po_matching.run_ai_matching import run_ai_matching
 from werkzeug.utils import secure_filename
 from extraction.ai_extractor import extract_invoices_json
 from extraction.vision_extractor import VisionExtractor
@@ -157,6 +158,10 @@ def trigger_matching():
     run_matching()
     return redirect(url_for("ap"))
 
+@app.route("/run-ai-matching", methods=["POST"])
+def trigger_ai_matching():
+    run_ai_matching()
+    return redirect(url_for("ap"))
 
 @app.route("/model-trainer")
 def model_trainer():
