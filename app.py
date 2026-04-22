@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from flask import (
     Flask,
     render_template,
@@ -49,16 +51,58 @@ app.jinja_env.filters["format_datetime"] = format_datetime
 
 import models
 from po_matching.run_matching import run_matching
+from po_matching.run_ai_matching import run_ai_matching
 from werkzeug.utils import secure_filename
 from extraction.ai_extractor import extract_invoices_json
 from extraction.vision_extractor import VisionExtractor
 from extraction.pdfplumber_extractor import extract_invoice_pdf
 
+SPECIAL_ROUTES = {
+    "sally.admin": "/dashboard",
+    "tom.ap":      "/ap",                 #remember
+    "jim.model":   "/model-trainer",
+}
 
 @app.route("/")
-def home():
+def home():  
     return render_template("index.html")
 
+@app.route("/login")
+def login():
+    username = request.args.get("username", "").strip().lower()
+    if not username:
+        return jsonify({"error": "Please enter a username."}), 400
+ 
+    # Special users bypass DB check entirely
+    if username in SPECIAL_ROUTES:
+        return jsonify({"redirect": SPECIAL_ROUTES[username]})
+ 
+    # Everyone else must exist in the DB as an active user
+    user = models.Users.query.filter_by(username=username, active=True).first()
+    if not user:
+        return jsonify({"error": f"No active account found for '{username}'."}), 404
+ 
+    return jsonify({"redirect": f"/ap/{username}"})
+
+@app.route("/ap")
+@app.route("/ap/<username>")
+def ap(username=None):
+    invoices = models.Invoice.query.all()
+    purchase_orders = models.Purchase_Order.query.all()
+ 
+    user = None
+    vendors = []
+    if username:
+        user = models.Users.query.filter_by(username=username, active=True).first_or_404()
+        vendors = models.Vendors.query.filter_by(username=username).all()
+ 
+    return render_template(
+        "ap.html",
+        invoices=invoices,
+        purchase_orders=purchase_orders,
+        user=user,
+        vendors=vendors,
+    )
 
 @app.route("/dashboard")
 def dashboard():
@@ -85,6 +129,12 @@ def dashboard():
     )
     vendor_names = sorted(set(i.vendor_name for i in invoices if i.vendor_name))
     vendor_count = len(vendor_names)
+    team_member = models.Users.query.all()
+    vendors = models.Vendors.query.all()
+    vendors_by_user = defaultdict(list)
+    for v in vendors:
+        if v.username:
+            vendors_by_user[v.username].append(v)
     return render_template(
         "dashboard.html",
         invoices=invoices,
@@ -98,6 +148,8 @@ def dashboard():
         high_confidence=high_confidence,
         vendor_names=vendor_names,
         vendor_count=vendor_count,
+        team_member=team_member,
+        vendors_by_user=vendors_by_user
     )
 
 
@@ -106,15 +158,10 @@ def trigger_matching():
     run_matching()
     return redirect(url_for("ap"))
 
-
-@app.route("/ap")
-def ap():
-    invoices = models.Invoice.query.all()
-    purchase_orders = models.Purchase_Order.query.all()
-    return render_template(
-        "ap.html", invoices=invoices, purchase_orders=purchase_orders
-    )
-
+@app.route("/run-ai-matching", methods=["POST"])
+def trigger_ai_matching():
+    run_ai_matching()
+    return redirect(url_for("ap"))
 
 @app.route("/model-trainer")
 def model_trainer():

@@ -316,8 +316,57 @@
               {% endfor %}
             </div>
           </div>
-        </div>
+          <div class="mt-6 bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-base font-semibold text-gray-900">Team Member Assignments</h3>
+            </div>
+            <div class="space-y-3">
+              {% for user in team_member %}
+              <div class="bg-gray-50 rounded-lg p-3">
 
+                <button onclick="toggleVendors('{{ user.username }}')" 
+                        class="w-full flex items-center justify-between border-none">
+
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xs">
+                      {{ user.username[0]|upper }}
+                    </div>
+
+                    <p>
+                      {{ user.display_name }}
+                    </p>
+                  </div>
+
+                  <span class="text-xs text-gray-500">Active</span>
+                </button>
+
+                <!-- Expandable vendor list -->
+                {% set user_vendors = vendors_by_user.get(user.username, []) %}
+
+                <div id="vendors-{{ user.username }}" 
+                    class="hidden mt-3 max-h-40 overflow-y-auto border-t pt-2">
+
+                  {% if user_vendors %}
+                    <ul class="space-y-1">
+                      {% for vendor in user_vendors %}
+                        <li>
+                          {{ vendor.name }}
+                        </li>
+                      {% endfor %}
+                    </ul>
+                  {% else %}
+                    <p class="text-sm text-gray-400">No vendors assigned</p>
+                  {% endif %}
+
+                </div>
+
+              </div>
+              {% else %}
+                <div class="py-6 text-center text-gray-400">No assignments registered.</div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -351,6 +400,11 @@ function showTab(n) {
       ]}, options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true,padding:20,font:{size:12}}}},scales:{y:{beginAtZero:true,max:8,ticks:{stepSize:2},grid:{color:'#f1f5f9'}},x:{grid:{display:false}}}}
     });
   }
+}
+
+function toggleVendors(username) {
+  const el = document.getElementById(`vendors-${username}`);
+  el.classList.toggle("hidden");
 }
 </script>
 
