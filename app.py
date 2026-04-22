@@ -1,6 +1,13 @@
-from collections import defaultdict
-
-from flask import Flask, render_template, redirect, url_for, send_from_directory, request, flash, jsonify
+from flask import (
+    Flask,
+    render_template,
+    redirect,
+    url_for,
+    send_from_directory,
+    request,
+    flash,
+    jsonify,
+)
 from datetime import date, datetime
 import os
 import shutil
@@ -13,7 +20,7 @@ db_path = os.path.join(basedir, "app.db")
 
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.secret_key = "invoiceai-dev-key" # Necessary for flash messages (show errors)
+app.secret_key = "invoiceai-dev-key"  # Necessary for flash messages (show errors)
 
 db.init_app(app)
 
@@ -42,8 +49,10 @@ app.jinja_env.filters["format_datetime"] = format_datetime
 
 import models
 from po_matching.run_matching import run_matching
-from extraction.liquid_extractor import LiquidExtractor
 from werkzeug.utils import secure_filename
+from extraction.ai_extractor import extract_invoices_json
+from extraction.vision_extractor import VisionExtractor
+from extraction.pdfplumber_extractor import extract_invoice_pdf
 
 SPECIAL_ROUTES = {
     "sally.admin": "/dashboard",
@@ -100,9 +109,21 @@ def dashboard():
     completed_count = sum(1 for i in invoices if i.status == "complete")
     total_value = sum(i.amount for i in invoices if i.amount)
     avg_value = total_value / len(invoices) if invoices else 0
-    low_confidence = sum(1 for i in invoices if i.confidence_score is not None and i.confidence_score < 50)
-    med_confidence = sum(1 for i in invoices if i.confidence_score is not None and 50 <= i.confidence_score < 80)
-    high_confidence = sum(1 for i in invoices if i.confidence_score is not None and i.confidence_score >= 80)
+    low_confidence = sum(
+        1
+        for i in invoices
+        if i.confidence_score is not None and i.confidence_score < 50
+    )
+    med_confidence = sum(
+        1
+        for i in invoices
+        if i.confidence_score is not None and 50 <= i.confidence_score < 80
+    )
+    high_confidence = sum(
+        1
+        for i in invoices
+        if i.confidence_score is not None and i.confidence_score >= 80
+    )
     vendor_names = sorted(set(i.vendor_name for i in invoices if i.vendor_name))
     vendor_count = len(vendor_names)
     team_member = models.Users.query.all()
@@ -111,14 +132,22 @@ def dashboard():
     for v in vendors:
         if v.username:
             vendors_by_user[v.username].append(v)
-    return render_template("dashboard.html",
-        invoices=invoices, purchase_orders=purchase_orders,
-        pending_count=pending_count, completed_count=completed_count,
-        total_value=total_value, avg_value=avg_value,
-        low_confidence=low_confidence, med_confidence=med_confidence, high_confidence=high_confidence,
-        vendor_names=vendor_names, vendor_count=vendor_count,
+    return render_template(
+        "dashboard.html",
+        invoices=invoices,
+        purchase_orders=purchase_orders,
+        pending_count=pending_count,
+        completed_count=completed_count,
+        total_value=total_value,
+        avg_value=avg_value,
+        low_confidence=low_confidence,
+        med_confidence=med_confidence,
+        high_confidence=high_confidence,
+        vendor_names=vendor_names,
+        vendor_count=vendor_count,
         team_member=team_member,
-        vendors_by_user=vendors_by_user)
+        vendors_by_user=vendors_by_user
+    )
 
 
 @app.route("/run-matching", methods=["POST"])
@@ -138,15 +167,24 @@ def model_trainer():
     med_confidence = sum(1 for i in scored if 50 <= i.confidence_score < 80)
     high_confidence = sum(1 for i in scored if i.confidence_score >= 80)
     unscored = invoice_count - len(scored)
-    avg_confidence = int(sum(i.confidence_score for i in scored) / len(scored)) if scored else 0
-    return render_template("model-trainer.html",
-        invoice_count=invoice_count, match_rate=match_rate,
-        low_confidence=low_confidence, med_confidence=med_confidence,
-        high_confidence=high_confidence, unscored=unscored, avg_confidence=avg_confidence)
+    avg_confidence = (
+        int(sum(i.confidence_score for i in scored) / len(scored)) if scored else 0
+    )
+    return render_template(
+        "model-trainer.html",
+        invoice_count=invoice_count,
+        match_rate=match_rate,
+        low_confidence=low_confidence,
+        med_confidence=med_confidence,
+        high_confidence=high_confidence,
+        unscored=unscored,
+        avg_confidence=avg_confidence,
+    )
 
-@app.route('/invoice-pdf/<int:invoice_id>')
+
+@app.route("/invoice-pdf/<int:invoice_id>")
 def get_invoice_pdf(invoice_id):
-    directory = os.path.join(app.root_path, 'data')
+    directory = os.path.join(app.root_path, "data")
     filename = f"sample_{invoice_id}.pdf"
     filepath = os.path.join(directory, filename)
 
@@ -154,6 +192,17 @@ def get_invoice_pdf(invoice_id):
         return "", 404
 
     return send_from_directory(directory, filename)
+
+
+def _is_text_based_pdf(extracted_pdf: dict) -> bool:
+    """Return True when pdfplumber found usable text on at least one page."""
+    pages = extracted_pdf.get("pages", []) if isinstance(extracted_pdf, dict) else []
+    for page in pages:
+        text = page.get("text", "") if isinstance(page, dict) else ""
+        if text and text.strip():
+            return True
+
+    return False
 
 
 @app.route("/upload-invoice", methods=["GET", "POST"])
@@ -181,27 +230,56 @@ def upload_invoice():
         file.save(pdf_path)
 
         try:
-            extractor = LiquidExtractor()
-            result = extractor.extract(pdf_path)
+            pdf_json = extract_invoice_pdf(pdf_path)
 
-            invoice_id = result.get('_invoice_id')
-            if invoice_id:
-                dest = os.path.join(app.root_path, 'data', f'sample_{invoice_id}.pdf')
-                shutil.copy(pdf_path, dest)
+            if _is_text_based_pdf(pdf_json):
+                results = extract_invoices_json(pdf_json, source_name=filename)
+            else:
+                results = [VisionExtractor().extract(pdf_path)]
+
+            for result in results:
+                invoice_id = result.get("_invoice_id")
+                if invoice_id:
+                    dest = os.path.join(app.root_path, "data", f"sample_{invoice_id}.pdf")
+                    shutil.copy(pdf_path, dest)
         except Exception as e:
             app.logger.error(f"Invoice extraction failed for {filename}: {e}")
             flash(f"Could not process '{filename}': {e}", "error")
 
-    return redirect(url_for('ap'))
+    return redirect(url_for("ap"))
+
+
+@app.route("/system-stats")
+def system_stats():
+    import psutil
+    cpu_percent = psutil.cpu_percent(interval=0.5)
+    memory = psutil.virtual_memory()
+    stats = {
+        "cpu_percent": cpu_percent,
+        "memory_percent": memory.percent,
+        "memory_used_gb": round(memory.used / (1024**3), 1),
+        "memory_total_gb": round(memory.total / (1024**3), 1),
+    }
+    try:
+        import GPUtil
+        gpus = GPUtil.getGPUs()
+        if gpus:
+            gpu = gpus[0]
+            stats["gpu_percent"] = round(gpu.load * 100, 1)
+            stats["gpu_memory_used_mb"] = round(gpu.memoryUsed)
+            stats["gpu_memory_total_mb"] = round(gpu.memoryTotal)
+            stats["gpu_name"] = gpu.name
+        else:
+            stats["gpu_percent"] = None
+            stats["gpu_name"] = "No GPU detected"
+    except ImportError:
+        stats["gpu_percent"] = None
+        stats["gpu_name"] = "GPUtil not installed"
+    return jsonify(stats)
 
 
 if __name__ == "__main__":
     app.run(debug=True)
-
-
-
-
-
 
 
 # from flask import (

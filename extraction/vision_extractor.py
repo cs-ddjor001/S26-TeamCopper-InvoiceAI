@@ -13,8 +13,10 @@ from .base import InvoiceExtractor
 
 from json_repair import repair_json
 
+from utils.invoice_quality_score import compute_invoice_quality
+
 SYSTEM_PROMPT = """\
-You are an invoice data extraction assistant. You will be given a string extraction of an \
+You are an invoice data extraction assistant. You will be given an image of an \
 invoice. Extract the following fields and return ONLY valid JSON with no \
 additional text, no markdown fences, and no explanation.
 
@@ -75,41 +77,42 @@ USER_PROMPT = "Extract all invoice data from this image and return it as JSON."
 DEFAULT_BASE_URL = "http://localhost:8080/v1"
 
 
-class LiquidExtractor(InvoiceExtractor):
+class VisionExtractor(InvoiceExtractor):
     """Extracts invoice data using the Liquid AI vision model (LFM2.5-VL)
     served locally via llama-server's OpenAI-compatible API."""
 
-    def __init__(self, base_url: str | None = None, model: str = "liquid"):
+    def __init__(self, base_url: str | None = None, model: str = "qwen"):
         self.base_url = base_url or os.environ.get(
             "LLAMA_SERVER_URL", DEFAULT_BASE_URL
         )
         self.model = model
         self.client = OpenAI(base_url=self.base_url, api_key="not-needed")
 
-    # def extract(self, pdf_path: str) -> dict:
-    #     """Extract structured invoice data from a PDF using the vision model.
+    def extract(self, pdf_path: str) -> dict:
+        print("Extracting invoice data using VisionExtractor...")
+        """Extract structured invoice data from a PDF using the vision model.
 
-    #     Args:
-    #         pdf_path: Path to the PDF invoice file.
+        Args:
+            pdf_path: Path to the PDF invoice file.
 
-    #     Returns:
-    #         Dict with extracted invoice fields.
+        Returns:
+            Dict with extracted invoice fields.
 
-    #     Raises:
-    #         FileNotFoundError: If the PDF file does not exist.
-    #         ConnectionError: If the llama-server is not reachable.
-    #         ValueError: If the model response cannot be parsed as JSON.
-    #     """
-    #     if not os.path.isfile(pdf_path):
-    #         raise FileNotFoundError(f"PDF not found: {pdf_path}")
+        Raises:
+            FileNotFoundError: If the PDF file does not exist.
+            ConnectionError: If the llama-server is not reachable.
+            ValueError: If the model response cannot be parsed as JSON.
+        """
+        if not os.path.isfile(pdf_path):
+            raise FileNotFoundError(f"PDF not found: {pdf_path}")
 
-    #     image_b64 = self._pdf_to_base64_image(pdf_path) #pdf to image
-    #     raw_response = self._call_model(image_b64) #image to ai model
-    #     data = self._parse_response(raw_response)  #make response json
-    #     self._save_json(data, pdf_path)
-    #     invoice = save_parsed_invoice(data)
-    #     data['_invoice_id'] = invoice.id
-    #     return data                                
+        image_b64 = self._pdf_to_base64_image(pdf_path) #pdf to image
+        raw_response = self._call_model(image_b64) #image to ai model
+        data = self._parse_response(raw_response)  #make response json
+        self._save_json(data, pdf_path)
+        invoice = save_parsed_invoice(data)
+        data['_invoice_id'] = invoice.id
+        return data                                
 
     def _save_json(self, data: dict, pdf_path: str): 
         """Save extracted JSON to file."""
@@ -171,7 +174,14 @@ class LiquidExtractor(InvoiceExtractor):
                 "Make sure llama-server is running."
             )
 
-        return response.choices[0].message.content
+        raw_response = response.choices[0].message.content or ""
+        if not raw_response.strip():
+            raise ValueError(
+                "Model returned an empty response. Check that llama-server is "
+                f"running the expected model at {self.base_url}."
+            )
+
+        return raw_response
 
     @staticmethod
     def _parse_response(raw: str) -> dict:
@@ -180,6 +190,12 @@ class LiquidExtractor(InvoiceExtractor):
         Handles cases where the model wraps JSON in markdown code fences
         or includes extra text around the JSON object.
         """
+
+        if not raw or not raw.strip():
+            raise ValueError(
+                "Model returned no text content to parse as JSON. Verify the model "
+                "is producing a response and try again."
+            )
 
         # Try direct parse first
         try:

@@ -4,7 +4,15 @@ from models.vendors import Vendors
 from models.invoice import Invoice
 from models.invoice_line_item import Invoice_Line_Item
 from .validator import InvoiceValidator
-from decimal import Decimal
+
+
+def _safe_float(value):
+    if value is None:
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
 
 def normalize_raw_invoice(data:dict) -> dict:
     """Normalizes the LiquidAI output for InvoiceValidator."""
@@ -107,14 +115,22 @@ def save_parsed_invoice(parsed):
     db.session.commit()
 
     for item in parsed.line_items:
+        quantity = _safe_float(item.quantity)
+        unit_price = _safe_float(item.unit_price)
+        amt_invoiced = _safe_float(item.total)
+
+        # Ignore rows with no usable values to avoid storing model noise.
+        if not item.description and quantity is None and unit_price is None and amt_invoiced is None:
+            continue
+
         li = Invoice_Line_Item(invoice_id=invoice.id,
                                line_num=None,
                                part_number=None,
                                part_description=item.description,
                                unit_of_measure=None,
-                               quantity=item.quantity,
-                               unit_price=float(item.unit_price),
-                               amt_invoiced=float(item.total),
+                               quantity=quantity,
+                               unit_price=unit_price,
+                               amt_invoiced=amt_invoiced,
                                clin=None)
         db.session.add(li)
     db.session.commit()
