@@ -47,8 +47,8 @@ def run_ai_matching():
                 )
                 db.session.add(match)
 
-            invoice.matched_po_id = po.id
-            invoice.confidence_score = final_score
+            invoice.ai_matched_po_id = po.id
+            invoice.ai_confidence_score = final_score
             invoice.status = "matched"
             matched_count += 1
 
