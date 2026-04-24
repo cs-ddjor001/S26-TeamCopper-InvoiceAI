@@ -3,12 +3,20 @@ from pydantic import BaseModel, field_validator, model_validator
 import re
 from datetime import datetime
 
+class ValidationIssue(BaseModel):
+    field: str
+    severity: str #warning/error
+    message: str
+    original_value = Optional[str] = None
 
+#sale of item blah blah
 class LineItem(BaseModel):
     description: Optional[str] = None
     quantity: Optional[float] = None
     unit_price: Optional[float] = None
     total: Optional[float] = None
+
+    _issues: List[ValidationIssue] = []
 
     @model_validator(mode="before")
     @classmethod
