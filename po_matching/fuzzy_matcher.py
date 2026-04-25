@@ -113,7 +113,7 @@ def match_by_fields_fuzzy(invoice, threshold=0.55):
         score_po = fuzzy_score(str(invoice.po_number or ""), str(po.po_number))
         total_score += 0.50 * score_po
 
-        # Part number and unit price matching (30% weight)
+        # Part number and unit price matching (45% weight)
         score_line = compute_line_item_score(invoice_items, po_items)
         total_score += 0.45 * score_line
 
