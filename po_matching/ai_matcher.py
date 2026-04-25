@@ -19,19 +19,13 @@ confidence score.
    - If no exact match, consider close matches (e.g., formatting differences).
    - If the invoice has no PO number, this portion scores 0.
 
-2. Part Number / Description (30% of confidence score)
+2. Part Number / Description (45% of confidence score)
    - Compare invoice line items against PO line items.
    - Match on part number first; if unavailable, match on part description.
    - A line item is considered matched if part similarity is 80% or higher
      AND the unit price is within tolerance.
 
-3. Vendor Name (15% of confidence score)
-   - Compare invoice vendor to PO vendor name.
-   - Account for variations: abbreviations, suffixes (Inc, LLC, Corp),
-     spacing, and capitalization differences.
-   - Example: "DRAEGER INC" and "Draeger, Inc." should be considered a match.
-
-4. Date (5% of confidence score)
+3. Date (5% of confidence score)
    - Check if the invoice date is reasonably close to the PO date.
    - Exact date match scores full points; dates within 30 days score partial.
 
