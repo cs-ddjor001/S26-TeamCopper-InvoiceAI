@@ -10,7 +10,7 @@ def match_invoice(invoice):
     """
     # 1. Direct PO number match — strongest signal
     if invoice.po_number:
-        po = match_to_po_directly(invoice.po_number)
+        po = match_to_po_directly(invoice.po_number, invoice)
         if po:
             return po, 100
 
@@ -22,7 +22,7 @@ def match_invoice(invoice):
     return None, 0
 
 
-def match_to_po_directly(po_number):
+def match_to_po_directly(po_number, invoice):
     """Find a PO by exact PO number match."""
     po = Purchase_Order.query.filter_by(po_number=po_number).first()
     if not po:
