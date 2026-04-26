@@ -75,9 +75,19 @@ class InvoiceValidator(BaseModel):
     def validate_date(cls, v):
         if not v:
             return None
+
         # Already correct format
         if isinstance(v, str) and re.match(r"^\d{4}-\d{2}-\d{2}$", v):
-            return v
+            #make sure it's reasonable
+            try: 
+                parsed = datetime.striptime(v, "%Y-%m-%d")
+                #flag if outside resonable range (OCR) 
+                if not (2000 <= parsed.year <= 2030):
+                    return None #or raise valueerror with issue tracking
+                return v
+            except ValueError:
+                return None
+
         # Try common formats the AI might return
         for fmt in (
             "%Y-%m-%d",
@@ -90,7 +100,11 @@ class InvoiceValidator(BaseModel):
             "%Y/%m/%d",   # 2025/02/08
         ):
             try:
-                return datetime.strptime(v, fmt).strftime("%Y-%m-%d")
+                parsed = datetime.strptime(v,fmt)
+                #validate year
+                if not (2000 <= parsed.year <= 2030):
+                    return None #or raise valueerror with issue tracking
+                return parsed.strftime("%Y-%m-%d")
             except Exception:
                 continue
         return None
