@@ -19,7 +19,7 @@ def run_ai_matching():
     Raises:
         ConnectionError: If llama-server is not reachable.
     """
-    unmatched = Invoice.query.filter_by(matched_po_id=None).all()
+    unmatched = Invoice.query.filter_by(ai_matched_po_id=None).all()
     print(f"Found {len(unmatched)} unmatched invoice(s).")
 
     matched_count = 0

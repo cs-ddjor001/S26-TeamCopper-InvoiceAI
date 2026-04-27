@@ -242,6 +242,8 @@
 												<th class="pb-4 font-bold">PO Number</th>
 												<th class="pb-4 font-bold">Matched PO ID</th>
 												<th class="pb-4 font-bold">Confidence</th>
+												<th class="pb-4 font-bold">AI Matched PO ID</th>
+												<th class="pb-4 font-bold">AI Confidence</th>
 												<th class="pb-4 font-bold">Vendor</th>
 												<th class="pb-4 font-bold">Amount</th>
 												<th class="pb-4 font-bold">Date Issued</th>
@@ -263,6 +265,14 @@
 												<td>
 													{{ invoice.confidence_score if
 													invoice.confidence_score is not none else "—" }}
+												</td>
+												<td>
+													{{ invoice.ai_matched_po_id if invoice.ai_matched_po_id is
+													not none else "—" }}
+												</td>
+												<td>
+													{{ invoice.ai_confidence_score if
+													invoice.ai_confidence_score is not none else "—" }}
 												</td>
 												<td>{{ invoice.vendor_name or "—" }}</td>
 												<td>{{ ("$%.2f"|format(invoice.amount)) if invoice.amount else "—" }}</td>
