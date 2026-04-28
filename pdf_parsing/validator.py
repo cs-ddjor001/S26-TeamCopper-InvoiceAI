@@ -71,38 +71,39 @@ class InvoiceValidator(BaseModel):
     @field_validator("po_number", mode="before")
     @classmethod
     def validate_po_num(cls,v):
-        if v is None:
-            raise ValueError("PO Number is not here")
-        #convert to string if is a number
+        if v is None or v == "":
+            return None  # Allow missing PO number
+    
+        # Convert to string if it's a number
         po_str = str(v).strip()
-
-        #removing prefixes
-        for prefix in ['PO-', 'PO#', 'PO ', 'P.O. ' 'PO']:
+    
+        # Remove common prefixes like "PO-", "PO#", etc.
+        for prefix in ['PO-', 'PO#', 'PO ', 'P.O. ', 'PO']:
             if po_str.upper().startswith(prefix.upper()):
                 po_str = po_str[len(prefix):].strip()
-        
-        #only da digits
-        digits = re.sub(r'\D', '', po_str)
-
-        #common pattern is for po#'s to be 7 digits
-        if len(digits) != 7:
-            raise ValueError(f"PO Number must be 7 digits, received {len(digits)} digits.")
-        
-        return digits
+    
+        # Extract just the digits
+        digits_only = re.sub(r'\D', '', po_str)
+    
+        # Must be exactly 7 digits IF provided
+        if digits_only and len(digits_only) != 7:
+            return None  # Invalid format, just set to None instead of raising error
+    
+        return digits_only if digits_only else None
     
     @field_validator("vendor_name")
     @classmethod
     def validate_vendor_name(cls, v: Optional[str]) -> str:
         if v is None:
-            raise ValueError("Vendor Name is required")
-        
+            #raise ValueError("Vendor Name is required")
+            return None
         cleaned = v.strip()
 
         if not cleaned:
-            raise ValueError("Vendor Name is missing")
-        
+            #raise ValueError("Vendor Name is missing")
+            return None
         if len(cleaned)< 2:
-            raise ValueError("Vendor name is too short (min 2 characters)")
+            return None
         
         return cleaned
     
@@ -110,7 +111,7 @@ class InvoiceValidator(BaseModel):
     @classmethod
     def validate_total(cls, v):
         if v is None:
-            raise ValueError("Total amount required")
+            raise None
         
         #parse
         if isinstance(v, (int, float)):
@@ -125,9 +126,10 @@ class InvoiceValidator(BaseModel):
             try:
                 return float(cleaned)
             except ValueError:
-                raise ValueError(f"Invalid total amount format: {v}")
+                return None
             
-        raise ValueError(f"Total must be a number or a string, received {type(v)}")
+        #raise ValueError(f"Total must be a number or a string, received {type(v)}")
+        return None
     #validation_issues: List[ValidationIssue] = []
 
     @field_validator("date", mode="before")
