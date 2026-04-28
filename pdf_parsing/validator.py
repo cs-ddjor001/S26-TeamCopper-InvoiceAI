@@ -7,7 +7,7 @@ class ValidationIssue(BaseModel):
     field: str
     severity: str #warning/error
     message: str
-    original_value = Optional[str] = None
+    # original_value = Optional[str] = None
 
 #sale of item blah blah
 class LineItem(BaseModel):
@@ -16,7 +16,7 @@ class LineItem(BaseModel):
     unit_price: Optional[float] = None
     total: Optional[float] = None
 
-    _issues: List[ValidationIssue] = []
+    #_issues: List[ValidationIssue] = []
 
     @model_validator(mode="before")
     @classmethod
@@ -58,7 +58,7 @@ class LineItem(BaseModel):
 
 class InvoiceValidator(BaseModel):
 
-    # Validates the raw AI-generated invoice JSON and exposes clean, typed fields
+    # validates the organized raw text from AI, and then after validation send to database
     invoice_number: Optional[str] = None
     vendor_name: Optional[str] = None
     date: Optional[str] = None
@@ -68,7 +68,7 @@ class InvoiceValidator(BaseModel):
     total: Optional[float] = None
     po_number: Optional[str] = None
 
-    
+    #validation_issues: List[ValidationIssue] = []
 
     @field_validator("date", mode="before")
     @classmethod
@@ -80,7 +80,7 @@ class InvoiceValidator(BaseModel):
         if isinstance(v, str) and re.match(r"^\d{4}-\d{2}-\d{2}$", v):
             #make sure it's reasonable
             try: 
-                parsed = datetime.striptime(v, "%Y-%m-%d")
+                parsed = datetime.strptime(v, "%Y-%m-%d")
                 #flag if outside resonable range (OCR) 
                 if not (2000 <= parsed.year <= 2030):
                     return None #or raise valueerror with issue tracking
