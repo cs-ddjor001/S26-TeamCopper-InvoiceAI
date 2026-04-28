@@ -55,7 +55,7 @@ def get_top_candidates(invoice, n=10):
     scored = []
 
     for po in candidates:
-        if str(invoice.po_number or "") != str(po.po_number):
+        if normalize(invoice.po_number) != normalize(po.po_number):
             continue
         invoice_items = getattr(invoice, "line_items", [])
         po_items = getattr(po, "line_items", [])
@@ -85,8 +85,7 @@ def match_by_fields_fuzzy(invoice, threshold=0.55):
 
     Weights:
         PO number:              50%
-        Part number/description: 30%
-        Vendor name:            15%
+        Part number/description: 45%
         Date:                    5%
 
     Returns:
@@ -98,7 +97,7 @@ def match_by_fields_fuzzy(invoice, threshold=0.55):
     best_score = 0
 
     for po in candidates:
-        if str(invoice.po_number or "") != str(po.po_number):
+        if normalize(invoice.po_number or "") != normalize(po.po_number):
             continue
 
         invoice_items = getattr(invoice, "line_items", [])

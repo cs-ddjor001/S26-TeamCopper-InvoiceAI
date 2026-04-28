@@ -14,16 +14,16 @@ def match_invoice(invoice):
         if po:
             return po, 100
 
-    # 2. Match by vendor/date signals as fallback
+    # 2. Fallback: Same PO number, but no vendor
     po = match_by_fields(invoice)
     if po:
-        return po, 85  # High but not 100 — no PO number confirmation
+        return po, 85
 
     return None, 0
 
 
 def match_to_po_directly(po_number, invoice):
-    """Find a PO by exact PO number match."""
+    """Find a PO by exact PO number match and ADS rules."""
     po = Purchase_Order.query.filter_by(po_number=po_number).first()
     if not po:
         return None
@@ -36,12 +36,10 @@ def match_to_po_directly(po_number, invoice):
 
 
 def match_by_fields(invoice):
-    """Find a PO by matching fields that exist on Purchase_Order.
-
-    Current schema has vendor_name and po_date (but no amount column).
-    Strategy:
-    1) vendor_name + exact date when invoice date exists
-    2) vendor_name only, newest PO first
+    """Find a PO by matching the following fields:
+        1) PO number
+        2) Part number
+        3) Unit price
     """
     if not invoice.po_number:
         return None
