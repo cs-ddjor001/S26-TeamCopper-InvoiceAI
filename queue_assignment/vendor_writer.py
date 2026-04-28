@@ -62,6 +62,15 @@ def load_vendors(filepaths=None):
 
 
 if __name__ == "__main__":
+    from importlib.util import spec_from_file_location, module_from_spec
+
+    assignment_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vendor_assignment.py")
+    spec = spec_from_file_location("vendor_assignment", assignment_path)
+    mod = module_from_spec(spec)
+    spec.loader.exec_module(mod)
+
     with app.app_context():
         db.create_all()
         load_vendors()
+        print("Starting vendor assignment...")
+        mod.assign_vendors_to_users()
