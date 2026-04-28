@@ -68,6 +68,66 @@ class InvoiceValidator(BaseModel):
     total: Optional[float] = None
     po_number: Optional[str] = None
 
+    @field_validator("po_number", mode="before")
+    @classmethod
+    def validate_po_num(cls,v):
+        if v is None:
+            raise ValueError("PO Number is not here")
+        #convert to string if is a number
+        po_str = str(v).strip()
+
+        #removing prefixes
+        for prefix in ['PO-', 'PO#', 'PO ', 'P.O. ' 'PO']:
+            if po_str.upper().startswith(prefix.upper()):
+                po_str = po_str[len(prefix):].strip()
+        
+        #only da digits
+        digits = re.sub(r'\D', '', po_str)
+
+        #common pattern is for po#'s to be 7 digits
+        if len(digits) != 7:
+            raise ValueError(f"PO Number must be 7 digits, received {len(digits)} digits.")
+        
+        return digits
+    
+    @field_validator("vendor_name")
+    @classmethod
+    def validate_vendor_name(cls, v: Optional[str]) -> str:
+        if v is None:
+            raise ValueError("Vendor Name is required")
+        
+        cleaned = v.strip()
+
+        if not cleaned:
+            raise ValueError("Vendor Name is missing")
+        
+        if len(cleaned)< 2:
+            raise ValueError("Vendor name is too short (min 2 characters)")
+        
+        return cleaned
+    
+    @field_validator("total", mode="before")
+    @classmethod
+    def validate_total(cls, v):
+        if v is None:
+            raise ValueError("Total amount required")
+        
+        #parse
+        if isinstance(v, (int, float)):
+            return float(v)
+        
+        if isinstance(v, str):
+            cleaned = v.replace("$", "").replace(",", "").strip()
+            if cleaned.count(".") > 1:
+                parts = cleaned.rsplit(".", 1)
+                cleaned = parts[0].replace(".", "") + "." + parts[1]
+            
+            try:
+                return float(cleaned)
+            except ValueError:
+                raise ValueError(f"Invalid total amount format: {v}")
+            
+        raise ValueError(f"Total must be a number or a string, received {type(v)}")
     #validation_issues: List[ValidationIssue] = []
 
     @field_validator("date", mode="before")
@@ -126,15 +186,6 @@ class InvoiceValidator(BaseModel):
             except ValueError:
                 return None
         return None
-
-    @field_validator("vendor_name", "invoice_number")
-    @classmethod
-    def not_empty(cls, v: Optional[str]) -> Optional[str]:
-        if v is None:
-            return None
-        if not v.strip():
-            return None
-        return v.strip()
 
     # Convenience properties that map JSON fields to DB column names
     @property
