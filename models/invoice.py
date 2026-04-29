@@ -15,6 +15,7 @@ class Invoice(db.Model):
     confidence_score = db.Column(db.Float, nullable=True)
     ai_confidence_score = db.Column(db.Float, nullable=True)
     quality_score = db.Column(db.Integer, default=100)
+    uploaded_by = db.Column(db.String, nullable=True)
 
     line_items = db.relationship("Invoice_Line_Item", backref="invoice", lazy=True)
 

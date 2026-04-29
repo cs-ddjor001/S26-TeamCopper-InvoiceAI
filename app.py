@@ -4,6 +4,7 @@ from flask import (
     Flask,
     render_template,
     redirect,
+    session,
     url_for,
     send_from_directory,
     request,
@@ -72,7 +73,9 @@ def login():
     username = request.args.get("username", "").strip().lower()
     if not username:
         return jsonify({"error": "Please enter a username."}), 400
- 
+    
+    session["username"] = username
+
     # Special users bypass DB check entirely
     if username in SPECIAL_ROUTES:
         return jsonify({"redirect": SPECIAL_ROUTES[username]})
@@ -81,28 +84,40 @@ def login():
     user = models.Users.query.filter_by(username=username, active=True).first()
     if not user:
         return jsonify({"error": f"No active account found for '{username}'."}), 404
- 
+    
     return jsonify({"redirect": f"/ap/{username}"})
 
 @app.route("/ap")
 @app.route("/ap/<username>")
 def ap(username=None):
-    invoices = models.Invoice.query.all()
+   # invoices = models.Invoice.query.all()
+   # purchase_orders = models.Purchase_Order.query.all()
+    session_user = session.get("username")
+    if not session_user:
+        return redirect(url_for("login"))
+    if username and username != session_user:
+        return redirect(f"/ap/{session_user}")
+    
+    user = models.Users.query.filter_by(username=session_user).first()
+
+    invoices = models.Invoice.query.filter_by(uploaded_by=session_user).all()
     purchase_orders = models.Purchase_Order.query.all()
- 
-    user = None
-    vendors = []
-    if username:
-        user = models.Users.query.filter_by(username=username, active=True).first_or_404()
-        vendors = models.Vendors.query.filter_by(username=username).all()
- 
+    vendors = models.Vendors.query.filter_by(username=session_user).all()
+
     return render_template(
         "ap.html",
         invoices=invoices,
         purchase_orders=purchase_orders,
         user=user,
-        vendors=vendors,
+        vendors=vendors
     )
+ 
+   # user = None
+   #  vendors = []
+    #if username:
+    #    user = models.Users.query.filter_by(username=username, active=True).first_or_404()
+     #   vendors = models.Vendors.query.filter_by(username=username).all()
+
 
 @app.route("/dashboard")
 def dashboard():
@@ -155,15 +170,16 @@ def dashboard():
 
 @app.route("/run-matching", methods=["POST"])
 def trigger_matching():
-    with app.app_context():
-        run_matching()
-    return redirect(url_for("ap"))
+    session_user = session.get("username")
+    run_matching()
+    return redirect(f"/ap/{session_user}" if session_user else url_for("ap"))
+
 
 @app.route("/run-ai-matching", methods=["POST"])
 def trigger_ai_matching():
-    with app.app_context():
-        run_ai_matching()
-    return redirect(url_for("ap"))
+    session_user = session.get("username")
+    run_ai_matching()
+    return redirect(f"/ap/{session_user}" if session_user else url_for("ap"))
 
 @app.route("/model-trainer")
 def model_trainer():
@@ -216,13 +232,17 @@ def _is_text_based_pdf(extracted_pdf: dict) -> bool:
 
 @app.route("/upload-invoice", methods=["GET", "POST"])
 def upload_invoice():
+    session_user = session.get("username")
+    if not session_user:
+        return redirect(url_for("login"))
+
     if request.method == "GET":
-        flash("Use the upload button on AP page to submit invoices.", "info")
-        return redirect(url_for("ap"))
+        return redirect(f"/ap/{session_user}")
 
     files = request.files.getlist("invoice_pdf")
     if not files or all(f.filename == "" for f in files):
-        return redirect(url_for("ap"))
+        return redirect(f"/ap/{session_user}")
+
 
     upload_dir = os.path.join(app.root_path, "data", "uploads")
     os.makedirs(upload_dir, exist_ok=True)
@@ -251,11 +271,15 @@ def upload_invoice():
                 if invoice_id:
                     dest = os.path.join(app.root_path, "data", f"sample_{invoice_id}.pdf")
                     shutil.copy(pdf_path, dest)
+                    invoice = models.Invoice.query.get(invoice_id)
+                    if invoice:
+                        invoice.uploaded_by = session_user
+                        db.session.commit()
         except Exception as e:
             app.logger.error(f"Invoice extraction failed for {filename}: {e}")
             flash(f"Could not process '{filename}': {e}", "error")
 
-    return redirect(url_for("ap"))
+    return redirect(f"/ap/{session_user}")
 
 
 @app.route("/system-stats")

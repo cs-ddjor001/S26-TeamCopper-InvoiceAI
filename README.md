@@ -51,11 +51,24 @@ python Purchase_order_writer/load_po_csv.py
 
 This is the required first step. It creates all database tables and loads the real ADS purchase order data from `data/ADS POs csvs/`. The app cannot run meaningfully without POs in the database.
 
-### 5. Start the model with llama
+### 5. Load AP Team Member and Vendor data into the database
+
+```bash
+python queue_assignment/user_writer.py
+```
+
+```bash
+python queue_assignment/vendor_writer.py
+```
+Running these will load the AP team members into the database, and 
+then the vendors into the database. It will then automatically and 
+evenly split the vendors between the ap team members. 
+
+### 6. Start the model with llama
 
 llama-server --model ai_models/Qwen3.5-4B.Q4_K_S.gguf --mmproj ai_models/mmproj-BF16.gguf
 
-### 6. Run the app
+### 7. Run the app
 
 ```bash
 python app.py
@@ -63,14 +76,13 @@ python app.py
 flask run
 ```
 
-### 7. Usernames
+### 8. Usernames
 
-tom.ap
-sally.admin
-jim.model
+Special Usernames for Default Pages: tom.ap, sally.admin, jim.model
+AP Team Login: Use corresponding username in database (e.g. anitaknapp for Anita Knapp)
 ---
 
-### 7. Upload Invoices
+### 9. Upload Invoices
 
 After ensuring the Qwen AI model is running (instructions below), use the Upload Invoice button to upload invoices,
 then run matching. 

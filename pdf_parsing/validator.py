@@ -3,12 +3,20 @@ from pydantic import BaseModel, field_validator, model_validator
 import re
 from datetime import datetime
 
+class ValidationIssue(BaseModel):
+    field: str
+    severity: str #warning/error
+    message: str
+    # original_value = Optional[str] = None
 
+#sale of item blah blah
 class LineItem(BaseModel):
     description: Optional[str] = None
     quantity: Optional[float] = None
     unit_price: Optional[float] = None
     total: Optional[float] = None
+
+    #_issues: List[ValidationIssue] = []
 
     @model_validator(mode="before")
     @classmethod
@@ -50,7 +58,7 @@ class LineItem(BaseModel):
 
 class InvoiceValidator(BaseModel):
 
-    # Validates the raw AI-generated invoice JSON and exposes clean, typed fields
+    # validates the organized raw text from AI, and then after validation send to database
     invoice_number: Optional[str] = None
     vendor_name: Optional[str] = None
     date: Optional[str] = None
@@ -60,125 +68,88 @@ class InvoiceValidator(BaseModel):
     total: Optional[float] = None
     po_number: Optional[str] = None
 
-    @model_validator(mode="before")
+    @field_validator("po_number", mode="before")
     @classmethod
-    def normalize_fields(cls, data: dict) -> dict:
-        # Vendor name fallbacks
-        if not data.get("vendor_name"):
-            data["vendor_name"] = (
-                data.get("supplier")
-                or data.get("vendor")
-                or data.get("company_name")
-                or data.get("vendor_company")
-                or data.get("bill_from")
-                or data.get("seller")
-                or data.get("ship_from")
-                or data.get("remit_to")
-                or data.get("sold_by")
-                or data.get("issued_by")
-            )
-        if data.get("vendor_name") is None:
-            import logging
-            logging.warning(
-                f"vendor_name missing. Available keys: {list(data.keys())}"
-            )
+    def validate_po_num(cls,v):
+        if v is None or v == "":
+            return None  # Allow missing PO number
+    
+        # Convert to string if it's a number
+        po_str = str(v).strip()
+    
+        # Remove common prefixes like "PO-", "PO#", etc.
+        for prefix in ['PO-', 'PO#', 'PO ', 'P.O. ', 'PO']:
+            if po_str.upper().startswith(prefix.upper()):
+                po_str = po_str[len(prefix):].strip()
+    
+        # Extract just the digits
+        digits_only = re.sub(r'\D', '', po_str)
+    
+        # Must be exactly 7 digits IF provided
+        if digits_only and len(digits_only) != 7:
+            return None  # Invalid format, just set to None instead of raising error
+    
+        return digits_only if digits_only else None
+    
+    @field_validator("vendor_name")
+    @classmethod
+    def validate_vendor_name(cls, v: Optional[str]) -> str:
+        if v is None:
+            #raise ValueError("Vendor Name is required")
+            return None
+        cleaned = v.strip()
 
-        # Date fallbacks
-        if not data.get("date"):
-            data["date"] = (
-                data.get("invoice_date")
-                or data.get("issue_date")
-                or data.get("date_issued")
-            )
-
-        # PO number fallbacks — covers all common label variations the model may use
-        if not data.get("po_number"):
-            data["po_number"] = (
-                data.get("customer_po")
-                or data.get("customer_po_number")
-                or data.get("customer_po_nbr")
-                or data.get("customer_po_no")
-                or data.get("cust_po")
-                or data.get("purchase_order")
-                or data.get("purchase_order_number")
-                or data.get("purchase_order_no")
-                or data.get("po_num")
-                or data.get("po_no")
-                or data.get("po_ref")
-                or data.get("buyer_reference")
-                or data.get("buyer_po")
-                or data.get("your_reference")
-                or data.get("your_ref")
-                or data.get("customer_reference")
-                or data.get("customer_ref")
-                or data.get("cust_ref")
-                or data.get("client_reference")
-                or data.get("client_ref")
-                or data.get("client_po")
-                or data.get("order_reference")
-                or data.get("order_ref")
-                or data.get("order_number")
-                or data.get("order_no")
-                or data.get("reference_number")
-                or data.get("reference")
-                or data.get("contract_number")
-                or data.get("contract_no")
-                or data.get("job_number")
-                or data.get("job_no")
-            )
-        if isinstance(data.get("po_number"), dict):
-            po_dict = data["po_number"] 
-            for key in (
-                "customer_po",
-                "po_number",
-                "po_no",
-                "po_num",
-                "order_number",
-                "reference",
-            ):
-                if key in po_dict and po_dict[key]:
-                    data["po_number"] = po_dict[key]
-                    break
-            else:
-                data["po_number"] = None
-
-        # Total fallbacks
-        if not data.get("total"):
-            data["total"] = (
-                data.get("total_amount_due")
-                or data.get("amount_due")
-                or data.get("total_due")
-                or data.get("invoice_total")
-                or data.get("balance_due")
-                or data.get("grand_total")
-                or data.get("net_due")
-            )
-
-        # Making sure line_item key exists
-        if "line_items" not in data or data["line_items"] is None:
-            data["line_items"] = []
-
-        cleaned_items = []
-        for item in data.get("line_items", []):
-            if not isinstance(item, dict):
-                continue
-            for key in ("unit_price", "total", "quantity"):
-                if isinstance(item.get(key), dict):
-                    item[key] = None
-            cleaned_items.append(item)
-
-        data["line_items"] = cleaned_items
+        if not cleaned:
+            #raise ValueError("Vendor Name is missing")
+            return None
+        if len(cleaned)< 2:
+            return None
         
-        return data
+        return cleaned
+    
+    @field_validator("total", mode="before")
+    @classmethod
+    def validate_total(cls, v):
+        if v is None:
+            raise None
+        
+        #parse
+        if isinstance(v, (int, float)):
+            return float(v)
+        
+        if isinstance(v, str):
+            cleaned = v.replace("$", "").replace(",", "").strip()
+            if cleaned.count(".") > 1:
+                parts = cleaned.rsplit(".", 1)
+                cleaned = parts[0].replace(".", "") + "." + parts[1]
+            
+            try:
+                return float(cleaned)
+            except ValueError:
+                return None
+            
+        #raise ValueError(f"Total must be a number or a string, received {type(v)}")
+        return None
+    #validation_issues: List[ValidationIssue] = []
 
     @field_validator("date", mode="before")
     @classmethod
     def validate_date(cls, v):
         if not v:
             return None
+
         # Already correct format
         if isinstance(v, str) and re.match(r"^\d{4}-\d{2}-\d{2}$", v):
-            return v
+            #make sure it's reasonable
+            try: 
+                parsed = datetime.strptime(v, "%Y-%m-%d")
+                #flag if outside resonable range (OCR) 
+                if not (2000 <= parsed.year <= 2030):
+                    return None #or raise valueerror with issue tracking
+                return v
+            except ValueError:
+                return None
+
         # Try common formats the AI might return
         for fmt in (
             "%Y-%m-%d",
@@ -191,7 +162,11 @@ class InvoiceValidator(BaseModel):
             "%Y/%m/%d",   # 2025/02/08
         ):
             try:
-                return datetime.strptime(v, fmt).strftime("%Y-%m-%d")
+                parsed = datetime.strptime(v,fmt)
+                #validate year
+                if not (2000 <= parsed.year <= 2030):
+                    return None #or raise valueerror with issue tracking
+                return parsed.strftime("%Y-%m-%d")
             except Exception:
                 continue
         return None
@@ -213,15 +188,6 @@ class InvoiceValidator(BaseModel):
             except ValueError:
                 return None
         return None
-
-    @field_validator("vendor_name", "invoice_number")
-    @classmethod
-    def not_empty(cls, v: Optional[str]) -> Optional[str]:
-        if v is None:
-            return None
-        if not v.strip():
-            return None
-        return v.strip()
 
     # Convenience properties that map JSON fields to DB column names
     @property
