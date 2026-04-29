@@ -1,4 +1,5 @@
-from models.purchase_orders import Purchase_Order
+from models import Purchase_Order
+from po_matching.fuzzy_matcher import price_within_tolerance
 
 
 def match_invoice(invoice):
@@ -9,41 +10,63 @@ def match_invoice(invoice):
     """
     # 1. Direct PO number match — strongest signal
     if invoice.po_number:
-        po = match_to_po_directly(invoice.po_number)
+        po = match_to_po_directly(invoice.po_number, invoice)
         if po:
             return po, 100
 
-    # 2. Match by vendor/date signals as fallback
+    # 2. Fallback: Same PO number, but no vendor
     po = match_by_fields(invoice)
     if po:
-        return po, 85  # High but not 100 — no PO number confirmation
+        return po, 85
 
     return None, 0
 
 
-def match_to_po_directly(po_number):
-    """Find a PO by exact PO number match."""
+def match_to_po_directly(po_number, invoice):
+    """Find a PO by exact PO number match and ADS rules."""
     return Purchase_Order.query.filter_by(po_number=po_number).first()
 
 
+
 def match_by_fields(invoice):
-    """Find a PO by matching fields that exist on Purchase_Order.
-
-    Current schema has vendor_name and po_date (but no amount column).
-    Strategy:
-    1) vendor_name + exact date when invoice date exists
-    2) vendor_name only, newest PO first
+    """Find a PO by matching the following fields:
+        1) PO number
+        2) Part number
+        3) Unit price
     """
-    vendor_name = getattr(invoice, "vendor_name", None)
-    if not vendor_name:
+    if not invoice.po_number:
         return None
+    
+    po = Purchase_Order.query.filter_by(po_number = invoice.po_number).first()
+    if not po:
+        return None
+    if not invoice_has_matching_line_item(invoice, po):
+        return None
+    
+    return po
 
-    query = Purchase_Order.query.filter_by(vendor_name=vendor_name)
 
-    invoice_date = getattr(invoice, "date_issued", None)
-    if invoice_date is not None:
-        po = query.filter(Purchase_Order.po_date == invoice_date).first()
-        if po:
-            return po
+def invoice_has_matching_line_item(invoice, po):
+    """Check for line item matching.
+    1) Part number must match
+    2) The unit price must be within tolerance
+    """
+    invoice_items = invoice.line_items or []
+    po_items = po.line_items or []
 
-    return query.order_by(Purchase_Order.po_date.desc()).first()
+    for inv in invoice_items:
+        for po_item in po_items:
+
+            # Part number required
+            if not inv.part_number or not po_item.part_number:
+                continue
+            if inv.part_number.strip() != po_item.part_number.strip():
+                continue
+
+            # Unit price tolerance required
+            if not price_within_tolerance(inv.unit_price, po_item.unit_price):
+                continue
+            # If we reach here → ADS rules satisfied
+            return True
+
+    return False

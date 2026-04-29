@@ -1,5 +1,5 @@
 from rapidfuzz import fuzz
-from models.purchase_orders import Purchase_Order
+from models import Purchase_Order
 import re
 
 
@@ -55,39 +55,21 @@ def get_top_candidates(invoice, n=10):
     scored = []
 
     for po in candidates:
+        if normalize(invoice.po_number) != normalize(po.po_number):
+            continue
+        invoice_items = getattr(invoice, "line_items", [])
+        po_items = getattr(po, "line_items", [])
+
+        if not has_valid_line_item_match(invoice_items, po_items):
+            continue
+
         total_score = 0
 
         score_po = fuzzy_score(str(invoice.po_number or ""), str(po.po_number))
         total_score += 0.50 * score_po
 
-        score_vendor = fuzzy_score(
-            getattr(invoice, "vendor_name", None) or str(invoice.vendor_name),
-            getattr(po, "vendor_name", None) or str(po.vendor_name),
-        )
-        total_score += 0.15 * score_vendor
-
-        score_line = 0
-        invoice_items = getattr(invoice, "line_items", [])
-        po_items = getattr(po, "line_items", [])
-        for invoice_item in invoice_items:
-            for po_item in po_items:
-                score_part = max(
-                    fuzzy_score(
-                        getattr(invoice_item, "part_number", None),
-                        getattr(po_item, "part_number", None),
-                    ),
-                    fuzzy_score(
-                        getattr(invoice_item, "part_description", None),
-                        getattr(po_item, "part_description", None),
-                    ),
-                )
-                if score_part >= 0.80:
-                    if price_within_tolerance(
-                        getattr(invoice_item, "unit_price", None),
-                        getattr(po_item, "unit_price", None),
-                    ):
-                        score_line = max(score_line, score_part)
-        total_score += 0.30 * score_line
+        score_line = compute_line_item_score(invoice_items, po_items)
+        total_score += 0.45 * score_line
 
         score_date = 1 if invoice.date_issued == getattr(po, "date_issued", None) else 0
         total_score += 0.05 * score_date
@@ -103,8 +85,7 @@ def match_by_fields_fuzzy(invoice, threshold=0.55):
 
     Weights:
         PO number:              50%
-        Part number/description: 30%
-        Vendor name:            15%
+        Part number/description: 45%
         Date:                    5%
 
     Returns:
@@ -116,42 +97,24 @@ def match_by_fields_fuzzy(invoice, threshold=0.55):
     best_score = 0
 
     for po in candidates:
+        if normalize(invoice.po_number or "") != normalize(po.po_number):
+            continue
+
+        invoice_items = getattr(invoice, "line_items", [])
+        po_items = getattr(po, "line_items", [])
+
+        if not has_valid_line_item_match(invoice_items, po_items):
+            continue
+
         total_score = 0
 
         # PO number (50% weight)
         score_po = fuzzy_score(str(invoice.po_number or ""), str(po.po_number))
         total_score += 0.50 * score_po
 
-        # Vendor (15% weight)
-        score_vendor = fuzzy_score(
-            getattr(invoice, "vendor_name", None) or str(invoice.vendor_name),
-            getattr(po, "vendor_name", None) or str(po.vendor_name),
-        )
-        total_score += 0.15 * score_vendor
-
-        # Part number and unit price matching (30% weight)
-        score_line = 0
-        invoice_items = getattr(invoice, "line_items", [])
-        po_items = getattr(po, "line_items", [])
-        for invoice_item in invoice_items:
-            for po_item in po_items:
-                score_part = max(
-                    fuzzy_score(
-                        getattr(invoice_item, "part_number", None),
-                        getattr(po_item, "part_number", None),
-                    ),
-                    fuzzy_score(
-                        getattr(invoice_item, "part_description", None),
-                        getattr(po_item, "part_description", None),
-                    ),
-                )
-                if score_part >= 0.80:
-                    if price_within_tolerance(
-                        getattr(invoice_item, "unit_price", None),
-                        getattr(po_item, "unit_price", None),
-                    ):
-                        score_line = max(score_line, score_part)
-        total_score += 0.30 * score_line
+        # Part number and unit price matching (45% weight)
+        score_line = compute_line_item_score(invoice_items, po_items)
+        total_score += 0.45 * score_line
 
         # Date (5% weight)
         score_date = 1 if invoice.date_issued == getattr(po, "date_issued", None) else 0
@@ -165,3 +128,29 @@ def match_by_fields_fuzzy(invoice, threshold=0.55):
         return best_po, best_score
 
     return None, 0
+
+def has_valid_line_item_match(invoice_items, po_items):
+    """ADS rules:
+       1) Part number must match
+       2) Unit price must be within tolerance
+    """
+    for inv in invoice_items:
+        for po in po_items:
+            if inv.part_number and po.part_number:
+                if normalize(inv.part_number) == normalize(po.part_number):
+                    if price_within_tolerance(inv.unit_price, po.unit_price):
+                        return True
+    return False
+
+
+def compute_line_item_score(invoice_items, po_items):
+    """Fuzzy part description scoring."""
+    best = 0
+    for inv in invoice_items:
+        for po in po_items:
+            score = max(
+                fuzzy_score(inv.part_description, po.part_description),
+                fuzzy_score(inv.part_number, po.part_number),
+            )
+            best = max(best, score)
+    return best
