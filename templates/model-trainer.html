@@ -26,21 +26,12 @@
           <p class="text-sm text-gray-500 mt-1">Current model configuration and status</p>
 
           <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-            {{ render_little_boxes("Base Model", "LFM2.5-VL") }}
-            {{ render_little_boxes("Model Size", "1.6B params") }}
-            {{ render_little_boxes("Max Sequence Length", "32K tokens") }}  <!-- Maximum tokens per training -->
+            {{ render_little_boxes("Base Model", "Qwen 3.5-4B") }}
+            {{ render_little_boxes("Quantization", "Q4_K_S (4-bit)") }}
+            {{ render_little_boxes("Distilled From", "Claude 4.6 Opus") }}
           </div>
 
-          <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
-              <h3 class="text-base font-semibold text-gray-900 mb-4">Training Parameters</h3>
-              <div class="space-y-3">
-                <div class="flex items-center justify-between py-2 border-b border-gray-100"><span class="text-sm text-gray-600">Number of Epochs</span><span class="text-sm font-medium text-gray-900">3</span></div>
-                <div class="flex items-center justify-between py-2 border-b border-gray-100"><span class="text-sm text-gray-600">Batch Size</span><span class="text-sm font-medium text-gray-900">8</span></div>
-                <div class="flex items-center justify-between py-2 border-b border-gray-100"><span class="text-sm text-gray-600">Gradient Accumulation</span><span class="text-sm font-medium text-gray-900">4</span></div> <!-- Batch Size Multiplier-->
-                <div class="flex items-center justify-between py-2"><span class="text-sm text-gray-600">Effective Batch Size</span><span class="text-sm font-semibold text-indigo-600">32</span></div> <!-- batch * accumulation -->
-              </div>
-            </div>
+          <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
               <h3 class="text-base font-semibold text-gray-900 mb-4">Dataset Configuration</h3>
               <div class="space-y-3">
@@ -52,8 +43,7 @@
             <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
               <h3 class="text-base font-semibold text-gray-900 mb-4">Training Metrics</h3>
               <div class="space-y-3">
-                <div class="flex items-center justify-between py-2 border-b border-gray-100"><span class="text-sm text-gray-600">Training Duration</span><span class="text-sm font-medium text-gray-900">3 epochs</span></div> <!-- num epochs -->
-                <div class="flex items-center justify-between py-2 border-b border-gray-100"><span class="text-sm text-gray-600">Total Training Samples</span><span class="text-sm font-medium text-gray-900">{{ invoice_count * 3 }}</span></div> <!-- dataset size * epochs-->
+                <div class="flex items-center justify-between py-2 border-b border-gray-100"><span class="text-sm text-gray-600">Total Training Samples</span><span class="text-sm font-medium text-gray-900">{{ invoice_count }}</span></div>
                 <div class="flex items-center justify-between py-2"><span class="text-sm text-gray-600">Estimated Training Time</span><span class="text-sm font-medium text-gray-900">—</span></div> <!-- throughput * epochs maybe?-->
               </div>
             </div>
