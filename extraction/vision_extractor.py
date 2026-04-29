@@ -23,7 +23,6 @@ additional text, no markdown fences, and no explanation.
 Required JSON structure:
 {
   "invoice_number": "string or null",
-  "vendor_name": "string or null",
   "date": "string in YYYY-MM-DD format or null",
   "line_items": [
     {
@@ -40,10 +39,6 @@ Required JSON structure:
 }
 
 Field extraction guidance:
-
-"vendor_name": The company or person sending/issuing the invoice (the seller or \
-supplier). Look for labels like: Vendor, Supplier, From, Bill From, Remit To, \
-Sold By, Seller, Ship From, Company Name. Do NOT use the buyer/customer name.
 
 "po_number": The purchase order reference number. This field may be labeled on \
 the invoice as any of the following — always map it to "po_number":

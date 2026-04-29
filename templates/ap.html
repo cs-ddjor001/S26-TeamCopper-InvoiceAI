@@ -99,7 +99,7 @@
 										{% if invoices %}
 											{% for invoice in invoices %}
 											<div class="px-3 py-2 text-sm flex justify-between">
-												<span class="text-gray-700 font-medium">{{ invoice.vendor_name or "—" }}</span>
+												<span class="text-gray-700 font-medium">Invoice #{{ invoice.id }}</span>
 												<span class="text-gray-400">{{ invoice.date_issued | format_datetime('%m/%d/%Y') }}</span>
 											</div>
 											{% endfor %}
@@ -158,14 +158,14 @@
 										{% if (invoices | length) > 0: %}
 										<table class="text-black text-left">
 											<tr class="text-lg">
-												<th class="font-bold pb-4">Vendor</th>
+												<th class="font-bold pb-4">Invoice ID</th>
 												<th class="font-bold pb-4">Date</th>
 												<th class="font-bold pb-4">Amount</th>
 												<th class="font-bold pb-4">Status</th>
 											</tr>
 											{% for invoice in invoices %}
 											<tr class="text-sm">
-												<td>{{ invoice.vendor_name or "—" }}</td>
+												<td>Invoice #{{ invoice.id }}</td>
 												<td>
 													{{ invoice.date_issued | format_datetime('%m/%d/%Y')
 													}}

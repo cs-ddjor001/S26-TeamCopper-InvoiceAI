@@ -55,13 +55,8 @@ def get_top_candidates(invoice, n=10):
     scored = []
 
     for po in candidates:
-        if normalize(invoice.po_number) != normalize(po.po_number):
-            continue
         invoice_items = getattr(invoice, "line_items", [])
         po_items = getattr(po, "line_items", [])
-
-        if not has_valid_line_item_match(invoice_items, po_items):
-            continue
 
         total_score = 0
 

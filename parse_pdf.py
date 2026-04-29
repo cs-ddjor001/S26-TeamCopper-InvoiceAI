@@ -11,7 +11,6 @@ with app.app_context():
     parsed = parse_invoice_pdf(pdf_path)
 
     print(f"  PO Number (extracted): {parsed.get('po_number')}")
-    print(f"  Supplier:              {parsed.get('vendor_name')}")
     print(f"  Amount:                {parsed.get('total')}")
     print(f"  Date Issued:           {parsed.get('date')}")
 

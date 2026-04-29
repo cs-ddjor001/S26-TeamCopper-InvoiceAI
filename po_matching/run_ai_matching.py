@@ -50,6 +50,8 @@ def run_ai_matching():
             invoice.ai_matched_po_id = po.id
             invoice.ai_confidence_score = final_score
             invoice.status = "matched"
+            if po.vendor_name:
+                invoice.vendor_name = po.vendor_name
             matched_count += 1
 
     db.session.commit()

@@ -80,9 +80,6 @@ def normalize_raw_invoice(data:dict) -> dict:
         if customer_po:
             data["po_number"] = str(customer_po)
 
-    if not data.get("vendor_name"):
-        data["vendor_name"] = "UNKNOWN"
-    
     for key in ("subtotal", "tax", "total"):
         if key in data and isinstance(data[key], (int, float)):
             data[key] = float(data[key])

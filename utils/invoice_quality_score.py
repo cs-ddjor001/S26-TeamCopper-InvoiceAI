@@ -26,25 +26,23 @@ def compute_invoice_quality(data: dict, raw_text: str | None = None) -> int:
     # Essentially, were they found or not?
     if not data.get("po_number"):
         invoice_quality_score -= 30
-    if not data.get("amount"):
+    if not data.get("total"):
         invoice_quality_score -= 10
     if not data.get("date"):
         invoice_quality_score -= 8
-    if not data.get("vendor_name") or data.get("vendor_name") == "UNKNOWN":
-        invoice_quality_score -= 5
-    
+
     invoice_line_items = data.get("line_items", [])
     if not invoice_line_items:
         invoice_quality_score -= 30
         return max(invoice_quality_score, 0)
     for line_item in invoice_line_items:
-        if not line_item.get("part_number") and not line_item.get("part_description"):
+        if not line_item.get("part_number") and not line_item.get("description"):
             invoice_quality_score -= 20
         if line_item.get("unit_price") in (None, ""):
             invoice_quality_score -= 10
         if line_item.get("quantity") in (None, ""):
             invoice_quality_score -= 8
-        if line_item.get("amt_invoiced") in (None, ""):
+        if line_item.get("total") in (None, ""):
             invoice_quality_score -= 8
     return max(invoice_quality_score, 0)
 

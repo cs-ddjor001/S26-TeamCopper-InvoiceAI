@@ -199,7 +199,7 @@ class AIMatcher:
             f"Could not parse model response as JSON. Raw response:\n{raw}"
         )
 
-def match_invoice_ai(invoice, top_n=20):
+def match_invoice_ai(invoice, top_n=10):
     """Run AI matching for an Invoice DB object.
 
     Pre-filters to the top N candidates by fuzzy score before calling the model,

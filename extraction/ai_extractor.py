@@ -24,7 +24,6 @@ no markdown fences, and no explanation.
 Return ONLY valid JSON with no additional text or markdown:
 {
   "invoice_number": "string (required — the seller's invoice ID)",
-  "vendor_name": "string — the company issuing/sending the invoice",
   "date": "YYYY-MM-DD — invoice issue date",
   "po_number": "string or null — the BUYER'S purchase order number referenced on this invoice",
   "subtotal": number or null,
@@ -41,12 +40,6 @@ Return ONLY valid JSON with no additional text or markdown:
 }
 
 ## Field Notes
-- vendor_name: The vendor is the company ISSUING (sending) this invoice — the seller.
-  Look for labels like "From:", "Sold by:", "Supplier:", "Bill From:", or a company name
-  in the sender/supplier section. Do NOT use the buyer's name as the vendor. The buying
-  company is ADS — any variation of this name (ADS, ADS Inc, Atlantic Diving Supply,
-  ATLANTIC DIVING SUPPLY, ADS LLC, etc.) is the BUYER, not the vendor. Never use any
-  ADS variation as the vendor_name.
 - po_number: This is the BUYER'S internal purchase order number. All valid PO numbers
   in this system are EXACTLY 7 digits. This is a hard rule — if a number is not 7 digits,
   it is NOT a PO number regardless of its label.
@@ -153,17 +146,6 @@ class AIExtractor:
 
         return saved
 
-    def _build_user_prompt(self, invoice_json: dict) -> str:
-        payload = json.dumps(invoice_json, indent=2, ensure_ascii=False)
-        if len(payload) > 20000:
-            payload = payload[:20000] + "\n\n[TRUNCATED FOR CONTEXT]"
-
-        return (
-            "Extract invoice data from this pdfplumber JSON:\n\n"
-            f"{payload}\n\n"
-            "/no_think"
-        )
-
     def _build_multi_user_prompt(self, invoice_json: dict) -> str:
         payload = json.dumps(invoice_json, indent=2, ensure_ascii=False)
         if len(payload) > 20000:
@@ -177,7 +159,6 @@ class AIExtractor:
             '  "invoices": [\n'
             "    {\n"
             '      "invoice_number": "string or null",\n'
-            '      "vendor_name": "string or null",\n'
             '      "date": "YYYY-MM-DD or null",\n'
             '      "line_items": [],\n'
             '      "subtotal": number or null,\n'

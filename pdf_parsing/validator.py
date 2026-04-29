@@ -91,46 +91,15 @@ class InvoiceValidator(BaseModel):
     
         return digits_only if digits_only else None
     
-    @field_validator("vendor_name")
+    @field_validator("vendor_name", mode="before")
     @classmethod
-    def validate_vendor_name(cls, v: Optional[str]) -> str:
+    def validate_vendor_name(cls, v: Optional[str]) -> Optional[str]:
         if v is None:
-            #raise ValueError("Vendor Name is required")
             return None
         cleaned = v.strip()
-
-        if not cleaned:
-            #raise ValueError("Vendor Name is missing")
+        if not cleaned or len(cleaned) < 2:
             return None
-        if len(cleaned)< 2:
-            return None
-        
         return cleaned
-    
-    @field_validator("total", mode="before")
-    @classmethod
-    def validate_total(cls, v):
-        if v is None:
-            raise None
-        
-        #parse
-        if isinstance(v, (int, float)):
-            return float(v)
-        
-        if isinstance(v, str):
-            cleaned = v.replace("$", "").replace(",", "").strip()
-            if cleaned.count(".") > 1:
-                parts = cleaned.rsplit(".", 1)
-                cleaned = parts[0].replace(".", "") + "." + parts[1]
-            
-            try:
-                return float(cleaned)
-            except ValueError:
-                return None
-            
-        #raise ValueError(f"Total must be a number or a string, received {type(v)}")
-        return None
-    #validation_issues: List[ValidationIssue] = []
 
     @field_validator("date", mode="before")
     @classmethod
