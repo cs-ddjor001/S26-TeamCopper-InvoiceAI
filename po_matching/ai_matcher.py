@@ -3,6 +3,7 @@ import os
 import re
 from openai import OpenAI, APIConnectionError
 from json_repair import repair_json
+from po_matching.fuzzy_matcher import get_top_candidates
 
 MATCHING_SYSTEM_PROMPT = """\
 You are an invoice-to-PO matching assistant. You will receive:
@@ -210,8 +211,6 @@ def match_invoice_ai(invoice, top_n=20):
         Tuple of (Purchase_Order, confidence_score_0_to_100) or (None, 0).
         Raises ConnectionError if llama-server is unreachable.
     """
-    from po_matching.fuzzy_matcher import get_top_candidates
-
     candidate_pos = get_top_candidates(invoice, n=top_n)
     if not candidate_pos:
         return None, 0

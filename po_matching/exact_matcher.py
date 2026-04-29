@@ -1,4 +1,4 @@
-from models.purchase_orders import Purchase_Order
+from models import Purchase_Order
 from po_matching.fuzzy_matcher import price_within_tolerance
 
 
@@ -24,14 +24,7 @@ def match_invoice(invoice):
 
 def match_to_po_directly(po_number, invoice):
     """Find a PO by exact PO number match and ADS rules."""
-    po = Purchase_Order.query.filter_by(po_number=po_number).first()
-    if not po:
-        return None
-    
-    if not invoice_has_matching_line_item(invoice, po):
-        return None
-    
-    return po
+    return Purchase_Order.query.filter_by(po_number=po_number).first()
 
 
 

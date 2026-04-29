@@ -1,6 +1,6 @@
 from extensions import db
-from models.invoice import Invoice
-from models.matches import Match
+from app import app
+from models import Invoice, Match
 from po_matching.matcher import match_invoice
 from utils.invoice_quality_score import compute_invoice_quality
 

@@ -9,3 +9,5 @@ from .po_line_item import PO_Line_Item
 from .sessions import Sessions
 from .user_roles import User_Roles
 from .user_audit import User_Audit
+from .invoice_line_item import Invoice_Line_Item
+from .matches import Match

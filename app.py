@@ -26,6 +26,13 @@ app.secret_key = "invoiceai-dev-key"  # Necessary for flash messages (show error
 
 db.init_app(app)
 
+import models
+from po_matching.run_matching import run_matching
+from po_matching.run_ai_matching import run_ai_matching
+from werkzeug.utils import secure_filename
+from extraction.ai_extractor import extract_invoices_json
+from extraction.vision_extractor import VisionExtractor
+from extraction.pdfplumber_extractor import extract_invoice_pdf
 
 def format_datetime(value, fmt="%m/%d/%Y"):
     if value is None:
@@ -49,13 +56,6 @@ def format_datetime(value, fmt="%m/%d/%Y"):
 
 app.jinja_env.filters["format_datetime"] = format_datetime
 
-import models
-from po_matching.run_matching import run_matching
-from po_matching.run_ai_matching import run_ai_matching
-from werkzeug.utils import secure_filename
-from extraction.ai_extractor import extract_invoices_json
-from extraction.vision_extractor import VisionExtractor
-from extraction.pdfplumber_extractor import extract_invoice_pdf
 
 SPECIAL_ROUTES = {
     "sally.admin": "/dashboard",
@@ -155,12 +155,14 @@ def dashboard():
 
 @app.route("/run-matching", methods=["POST"])
 def trigger_matching():
-    run_matching()
+    with app.app_context():
+        run_matching()
     return redirect(url_for("ap"))
 
 @app.route("/run-ai-matching", methods=["POST"])
 def trigger_ai_matching():
-    run_ai_matching()
+    with app.app_context():
+        run_ai_matching()
     return redirect(url_for("ap"))
 
 @app.route("/model-trainer")

@@ -1,5 +1,5 @@
 from rapidfuzz import fuzz
-from models.purchase_orders import Purchase_Order
+from models import Purchase_Order
 import re
 
 
