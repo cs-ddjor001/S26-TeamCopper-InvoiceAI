@@ -146,7 +146,7 @@ winget install llama.cpp
 
 ### Download model files
 
-Download from HuggingFace and place both files in `ai_models/`:
+Download from HuggingFace and place both files in `ai_models/`: [Qwen3.5-4B](https://huggingface.co/Jackrong/Qwen3.5-4B-Claude-4.6-Opus-Reasoning-Distilled-GGUF/tree/main)
 - `Qwen3.5-4B.Q4_K_S.gguf`
 - `mmproj-BF16.gguf`
 
