@@ -1,0 +1,34 @@
+"""Parse a single PDF invoice and save it to the database.
+
+Usage:
+    python scripts/parse_pdf.py data/ADS_Invoice_PDFs/some_invoice.pdf
+"""
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from app import create_app
+from app.parsing.text_parser import parse_invoice_pdf
+from app.parsing.db_writer import save_parsed_invoice
+
+pdf_path = sys.argv[1] if len(sys.argv) > 1 else "sample.pdf"
+
+if __name__ == "__main__":
+    app = create_app()
+    with app.app_context():
+        print(f"Parsing: {pdf_path}")
+        parsed = parse_invoice_pdf(pdf_path)
+
+        print(f"  PO Number (extracted): {parsed.get('po_number')}")
+        print(f"  Amount:                {parsed.get('total')}")
+        print(f"  Date Issued:           {parsed.get('date')}")
+
+        invoice = save_parsed_invoice(parsed)
+        print(
+            f"\nSaved to DB — Invoice id: {invoice.id}, "
+            f"PO number (doc): {invoice.po_number}, "
+            f"Matched PO id: {invoice.matched_po_id}, "
+            f"Confidence: {invoice.confidence_score}, "
+            f"Vendor name: {invoice.vendor_name}, "
+            f"Invoice Date: {invoice.date_issued}"
+        )
