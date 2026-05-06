@@ -395,29 +395,33 @@
 									<div
 										class="mt-6 items-center justify-center border border-dashed border-gray-200 rounded-lg h-48 text-gray-400 max-h-60 overflow-y-auto"
 									>
-										{% if (invoices | length) > 0: %}
-										<table class="text-black text-left text-lg">
-											<tr>
-												<th class="pb-4 font-bold">Invoice ID</th>
-												<th class="pb-4 font-bold">PO Number</th>
-												<th class="pb-4 font-bold">Vendor</th>
-												<th class="pb-4 font-bold">Amount</th>
-												<th class="pb-4 font-bold">Date Issued</th>
-											</tr>
-											{% for invoice in invoices %} {% if invoice.status ==
-											"complete" %}
-											<tr>
-												<td>{{ invoice.id }}</td>
-												<td>{{ invoice.po_number }}</td>
-												<td>{{ invoice.vendor_name or "—" }}</td>
-												<td>{{ ("$%.2f"|format(invoice.amount)) if invoice.amount else "—" }}</td>
-												<td>
-													{{invoice.date_issued | format_datetime('%m/%d/%Y')}}
-												</td>
-											</tr>
-											{% endif %} {% endfor %}
-										</table>
-										{% else %} No completed invoices. {% endif %}
+										{% set completed = invoices | selectattr("status", "equalto", "complete") | list %}
+                                                                {% if completed | length > 0 %}
+                                                                <table class="text-black text-left text-lg">
+                                                                        <tr>
+                                                                                <th class="pb-4 font-bold">Invoice ID</th>
+                                                                                <th class="pb-4 font-bold">PO Number</th>
+                                                                                <th class="pb-4 font-bold">Matched PO ID</th>
+                                                                                <th class="pb-4 font-bold">Confidence</th>
+                                                                                <th class="pb-4 font-bold">Vendor</th>
+                                                                                <th class="pb-4 font-bold">Amount</th>
+                                                                                <th class="pb-4 font-bold">Date Issued</th>
+                                                                        </tr>
+                                                                        {% for invoice in completed %}
+                                                                        <tr>
+                                                                                <td>{{ invoice.id }}</td>
+                                                                                <td>{{ invoice.po_number or "—" }}</td>
+                                                                                <td>{{ invoice.matched_po_id if invoice.matched_po_id is not none else "—" }}</td>
+                                                                                <td>{{ invoice.confidence_score if invoice.confidence_score is not none else "—" }}</td>
+                                                                                <td>{{ invoice.vendor_name or "—" }}</td>
+                                                                                <td>{{ ("$%.2f"|format(invoice.amount)) if invoice.amount else "—" }}</td>
+                                                                                <td>{{ invoice.date_issued | format_datetime('%m/%d/%Y') }}</td>
+                                                                        </tr>
+                                                                        {% endfor %}
+                                                                </table>
+                                                                {% else %}
+                                                                <div class="h-48 flex items-center justify-center text-gray-400">No completed invoices yet. Run matching to process invoices.</div>
+                                                                {% endif %}
 									</div>
 								</div>
 							</div>
