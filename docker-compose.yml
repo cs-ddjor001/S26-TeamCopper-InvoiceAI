@@ -1,0 +1,8 @@
+services:
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: ai2-mailhog
+    ports:
+      - "1025:1025"  # SMTP - where senders connect
+      - "8025:8025"  # Web UI + JSON API
+    restart: unless-stopped
