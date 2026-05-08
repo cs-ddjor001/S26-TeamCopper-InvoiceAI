@@ -8,7 +8,13 @@ msg["To"] = "invoices@ads.com"
 msg["Subject"] = "Invoice #12345"
 msg.set_content("Please find the attached invoice.")
 
-pdf_path = Path("test_invoice.pdf")
+repo_root = Path(__file__).parent
+
+pdf_path = repo_root.parent / "data" / "ADS_invoice_data" / "11-10977887.pdf"
+#file existance verification
+if not pdf_path.exists():
+    print(f"Error: PDF file not found at {pdf_path}")
+    
 msg.add_attachment(
     pdf_path.read_bytes(),
     maintype="application",
