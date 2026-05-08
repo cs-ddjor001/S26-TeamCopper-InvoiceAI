@@ -4,7 +4,7 @@ from datetime import date, datetime
 from flask import Flask
 
 from .config import Config
-from .extensions import db
+from .extensions import db, celery_init_app
 
 
 def create_app(config_class=Config):
@@ -18,6 +18,7 @@ def create_app(config_class=Config):
     app.config.from_object(config_class)
 
     db.init_app(app)
+    celery_init_app(app)
 
     def format_datetime(value, fmt="%m/%d/%Y"):
         if value is None:
