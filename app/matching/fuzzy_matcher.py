@@ -92,14 +92,9 @@ def match_by_fields_fuzzy(invoice, threshold=0.55):
     best_score = 0
 
     for po in candidates:
-        if normalize(invoice.po_number or "") != normalize(po.po_number):
-            continue
 
         invoice_items = getattr(invoice, "line_items", [])
         po_items = getattr(po, "line_items", [])
-
-        if not has_valid_line_item_match(invoice_items, po_items):
-            continue
 
         total_score = 0
 
