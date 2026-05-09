@@ -23,7 +23,7 @@ def run_matching():
             continue
         
         invoice_quality_score = invoice.quality_score or 100
-        final_score = round(match_score * (invoice_quality_score / 100))
+        final_score = round(match_score * invoice_quality_score)
 
         if final_score > 25:
             # Check for existing match to prevent duplicates

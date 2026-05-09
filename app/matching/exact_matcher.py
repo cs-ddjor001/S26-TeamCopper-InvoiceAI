@@ -1,5 +1,5 @@
 from app.models import Purchase_Order
-from app.matching.fuzzy_matcher import price_within_tolerance
+from app.matching.fuzzy_matcher import price_within_tolerance, match_by_fields_fuzzy
 
 
 def match_invoice(invoice):
@@ -8,42 +8,24 @@ def match_invoice(invoice):
     Returns:
         Tuple of (Purchase_Order, score) or (None, 0) if no match found.
     """
-    # 1. Direct PO number match — strongest signal
-    if invoice.po_number:
-        po = match_to_po_directly(invoice.po_number, invoice)
+    if not invoice.po_number:
+        # No PO number at all → go straight to fuzzy
+        po, fuzzy_score = match_by_fields_fuzzy(invoice)
         if po:
-            return po, 100
+            return po, fuzzy_score
+        return None, 0
 
-    # 2. Fallback: Same PO number, but no vendor
-    po = match_by_fields(invoice)
+    # 1. Strong exact (PO + ADS line items) 
+    po = Purchase_Order.query.filter_by(po_number=invoice.po_number).first()
+    if po and invoice_has_matching_line_item(invoice, po):
+        return po, 100
+    
+    # 2. Fuzzy match
+    po, fuzzy_score = match_by_fields_fuzzy(invoice)
     if po:
-        return po, 85
+        return po, fuzzy_score
 
     return None, 0
-
-
-def match_to_po_directly(po_number, invoice):
-    """Find a PO by exact PO number match and ADS rules."""
-    return Purchase_Order.query.filter_by(po_number=po_number).first()
-
-
-
-def match_by_fields(invoice):
-    """Find a PO by matching the following fields:
-        1) PO number
-        2) Part number
-        3) Unit price
-    """
-    if not invoice.po_number:
-        return None
-    
-    po = Purchase_Order.query.filter_by(po_number = invoice.po_number).first()
-    if not po:
-        return None
-    if not invoice_has_matching_line_item(invoice, po):
-        return None
-    
-    return po
 
 
 def invoice_has_matching_line_item(invoice, po):
