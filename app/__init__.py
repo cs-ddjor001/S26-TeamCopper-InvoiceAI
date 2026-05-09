@@ -16,6 +16,7 @@ def create_app(config_class=Config):
         static_folder=os.path.join(project_root, "static"),
     )
     app.config.from_object(config_class)
+    app.config["CELERY"] = {"broker_url": "redis://localhost:6379", "result_backend":"redis://localhost:6379"}
 
     db.init_app(app)
     celery_init_app(app)
