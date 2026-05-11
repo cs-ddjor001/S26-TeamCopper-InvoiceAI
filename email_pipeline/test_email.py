@@ -10,7 +10,8 @@ msg.set_content("Please find the attached invoice.")
 
 repo_root = Path(__file__).parent
 
-pdf_path = repo_root.parent / "data" / "ADS_invoice_data" / "11-10977887.pdf"
+pdf_path = repo_root.parent / "data" / "sample_5.pdf"
+
 #file existance verification
 if not pdf_path.exists():
     print(f"Error: PDF file not found at {pdf_path}")
