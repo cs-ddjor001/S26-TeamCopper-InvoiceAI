@@ -11,3 +11,4 @@ pydantic
 rapidfuzz
 psutil
 GPUtil
+requests
