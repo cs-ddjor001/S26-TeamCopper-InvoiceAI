@@ -85,6 +85,24 @@ def extract_pdf_attachments(raw_email: bytes) -> list[tuple[str, bytes]]:
     return results
 
 
+def extract_vendor_name(raw_email: bytes) -> str | None:
+    """Extract a vendor name from the sender's email domain.
+
+    Parses the From address and returns the part between '@' and the first '.'
+    in the domain — e.g. 'invoices@acmecorp.com' yields 'acmecorp'.
+
+    Returns None if the From header is missing or malformed.
+    """
+    msg = email.message_from_bytes(raw_email, policy=email.policy.default)
+    from_header = msg.get("From", "")
+    # email.headerregistry parses 'Display Name <addr>' and bare addresses
+    addr = email.headerregistry.Address(addr_spec=from_header.split("<")[-1].strip(" >"))
+    domain = addr.domain  # e.g. 'acmecorp.com'
+    if not domain or "@" not in f"x@{domain}":
+        return None
+    return domain.split(".")[0] or None
+
+
 def process_inbox() -> list[tuple[str, bytes]]:
     """Walk every message in the MailHog inbox and return all PDF attachments found.
 
@@ -93,15 +111,17 @@ def process_inbox() -> list[tuple[str, bytes]]:
     responsible for routing these into the invoice processing pipeline.
     """
     message_ids = list_message_ids()
-    all_pdfs: list[tuple[str, bytes]] = []
+    all_pdfs: list[tuple[str, str | None, bytes]] = []
 
     for message_id in message_ids:
         raw = fetch_raw_email(message_id)
-        all_pdfs.extend(extract_pdf_attachments(raw))
+        vendor_name = extract_vendor_name(raw)
+        for filename, pdf_bytes in extract_pdf_attachments(raw):
+            all_pdfs.append((filename, vendor_name, pdf_bytes))
 
     return all_pdfs
 
 
 if __name__ == "__main__":
-    for filename, pdf_bytes in process_inbox():
-        print(f"{filename!r} — {len(pdf_bytes):,} bytes")
+    for filename, vendor_name, pdf_bytes in process_inbox():
+        print(f"{vendor_name!r} — {filename!r} — {len(pdf_bytes):,} bytes")
