@@ -21,6 +21,8 @@ from app.extraction.vision_extractor import VisionExtractor
 from app.extraction.pdfplumber_extractor import extract_invoice_pdf
 from app.matching.run_matching import run_matching
 from app.matching.run_ai_matching import run_ai_matching
+from email_pipeline.mailhog_client import process_inbox
+from email_pipeline.test_email import send_test_invoice_email
 
 invoice_bp = Blueprint("invoice", __name__)
 
@@ -62,36 +64,113 @@ def get_invoice_pdf(invoice_id):
 
 @invoice_bp.route("/upload-invoice", methods=["GET", "POST"])
 def upload_invoice():
-    session_user = session.get("username")
-    if not session_user:
-        return redirect(url_for("auth.home"))
+
+    DEFAULT_TEAM_MEMBER = "tom.ap"
+
+    # Use logged-in user if available, otherwise fallback
+    # to the default AP team account for email ingestion
+    session_user = session.get("username", DEFAULT_TEAM_MEMBER)
 
     if request.method == "GET":
         return redirect(f"/ap/{session_user}")
 
     files = request.files.getlist("invoice_pdf")
+
     if not files or all(f.filename == "" for f in files):
         return redirect(f"/ap/{session_user}")
 
     project_root = current_app.config["PROJECT_ROOT"]
+
     upload_dir = os.path.join(project_root, "data", "uploads")
     os.makedirs(upload_dir, exist_ok=True)
 
     for file in files:
+
         if not file or file.filename == "":
             continue
+
         if not file.filename.lower().endswith(".pdf"):
             continue
 
         filename = secure_filename(file.filename)
+
         pdf_path = os.path.join(upload_dir, filename)
+
         file.save(pdf_path)
 
         try:
             pdf_json = extract_invoice_pdf(pdf_path)
 
             if _is_text_based_pdf(pdf_json):
-                results = extract_invoices_json(pdf_json, source_name=filename)
+                results = extract_invoices_json(
+                    pdf_json,
+                    source_name=filename
+                )
+            else:
+                results = [VisionExtractor().extract(pdf_path)]
+
+            for result in results:
+
+                invoice_id = result.get("_invoice_id")
+
+                if not invoice_id:
+                    continue
+
+                dest = os.path.join(
+                    project_root,
+                    "data",
+                    f"sample_{invoice_id}.pdf"
+                )
+
+                shutil.copy(pdf_path, dest)
+
+                invoice = Invoice.query.get(invoice_id)
+
+                if invoice:
+                    # Always assign to a valid user/team
+                    invoice.uploaded_by = session_user or DEFAULT_TEAM_MEMBER
+
+                    db.session.commit()
+
+        except Exception as e:
+
+            current_app.logger.error(
+                f"Invoice extraction failed for {filename}: {e}"
+            )
+
+            flash(
+                f"Could not process '{filename}': {e}",
+                "error"
+            )
+
+    return redirect(f"/ap/{session_user}")
+
+
+@invoice_bp.route("/fetch-email-invoices", methods=["POST"])
+def fetch_email_invoices():
+    session_user = session.get("username")
+    if not session_user:
+        return redirect(url_for("auth.home"))
+
+    project_root = current_app.config["PROJECT_ROOT"]
+    upload_dir = os.path.join(project_root, "data", "uploads")
+    os.makedirs(upload_dir, exist_ok=True)
+
+    for filename, vendor_name, pdf_bytes in process_inbox():
+        if not filename.lower().endswith(".pdf"):
+            continue
+
+        safe_name = secure_filename(filename)
+        pdf_path = os.path.join(upload_dir, safe_name)
+
+        with open(pdf_path, "wb") as f:
+            f.write(pdf_bytes)
+
+        try:
+            pdf_json = extract_invoice_pdf(pdf_path)
+
+            if _is_text_based_pdf(pdf_json):
+                results = extract_invoices_json(pdf_json, source_name=safe_name)
             else:
                 results = [VisionExtractor().extract(pdf_path)]
 
@@ -103,10 +182,26 @@ def upload_invoice():
                     invoice = Invoice.query.get(invoice_id)
                     if invoice:
                         invoice.uploaded_by = session_user
+                        invoice.vendor_name = vendor_name
                         db.session.commit()
         except Exception as e:
-            current_app.logger.error(f"Invoice extraction failed for {filename}: {e}")
+            current_app.logger.error(f"Email invoice extraction failed for {filename}: {e}")
             flash(f"Could not process '{filename}': {e}", "error")
+
+    return redirect(f"/ap/{session_user}")
+
+
+@invoice_bp.route("/send-test-email", methods=["POST"])
+def send_test_email():
+    session_user = session.get("username")
+    if not session_user:
+        return redirect(url_for("auth.home"))
+
+    try:
+        send_test_invoice_email()
+        flash("Test email sent to MailHog.", "success")
+    except Exception as e:
+        flash(f"Failed to send test email: {e}", "error")
 
     return redirect(f"/ap/{session_user}")
 

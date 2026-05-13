@@ -11,5 +11,6 @@ pydantic
 rapidfuzz
 psutil
 GPUtil
+requests
 celery
 redis
