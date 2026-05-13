@@ -119,6 +119,25 @@
 										</button>
 									</form>
 									<p id="selected-files-label" class="mt-2 text-xs text-gray-500 hidden"></p>
+
+									<form method="POST" action="/fetch-email-invoices">
+										<button
+											type="submit"
+											onclick="loadingTitle.textContent='Fetching invoices from email...'; loadingOverlay.classList.remove('hidden');"
+											class="mt-2 w-full bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-3 rounded-lg border-0 outline-none appearance-none"
+										>
+											Fetch from Email
+										</button>
+									</form>
+
+									<form method="POST" action="/send-test-email">
+										<button
+											type="submit"
+											class="mt-2 w-full bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 rounded-lg border-0 outline-none appearance-none"
+										>
+											Send Test Email
+										</button>
+									</form>
 								</div>
 
 								<div

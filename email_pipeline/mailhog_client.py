@@ -103,7 +103,7 @@ def extract_vendor_name(raw_email: bytes) -> str | None:
     return domain.split(".")[0] or None
 
 
-def process_inbox() -> list[tuple[str, bytes]]:
+def process_inbox() -> list[tuple[str, str | None, bytes]]:
     """Walk every message in the MailHog inbox and return all PDF attachments found.
 
     Returns a flat list of (filename, pdf_bytes) tuples collected across all

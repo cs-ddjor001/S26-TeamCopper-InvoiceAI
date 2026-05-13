@@ -2,28 +2,30 @@ import smtplib
 from email.message import EmailMessage
 from pathlib import Path
 
-msg = EmailMessage()
-msg["From"] = "vendor@example.com"
-msg["To"] = "invoices@ads.com"
-msg["Subject"] = "Invoice #12345"
-msg.set_content("Please find the attached invoice.")
 
-repo_root = Path(__file__).parent
+def send_test_invoice_email(smtp_host: str = "localhost", smtp_port: int = 1025) -> None:
+    """Send a sample invoice PDF to MailHog for end-to-end pipeline testing."""
+    pdf_path = Path(__file__).parent.parent / "data" / "sample_5.pdf"
 
-pdf_path = repo_root.parent / "data" / "sample_5.pdf"
+    if not pdf_path.exists():
+        raise FileNotFoundError(f"Test PDF not found at {pdf_path}")
 
-#file existance verification
-if not pdf_path.exists():
-    print(f"Error: PDF file not found at {pdf_path}")
-    
-msg.add_attachment(
-    pdf_path.read_bytes(),
-    maintype="application",
-    subtype="pdf",
-    filename=pdf_path.name,
-)
+    msg = EmailMessage()
+    msg["From"] = "vendor@example.com"
+    msg["To"] = "invoices@ads.com"
+    msg["Subject"] = "Invoice #12345"
+    msg.set_content("Please find the attached invoice.")
+    msg.add_attachment(
+        pdf_path.read_bytes(),
+        maintype="application",
+        subtype="pdf",
+        filename=pdf_path.name,
+    )
 
-with smtplib.SMTP("localhost", 1025) as smtp:
-    smtp.send_message(msg)
+    with smtplib.SMTP(smtp_host, smtp_port) as smtp:
+        smtp.send_message(msg)
 
-print("Sent with attachment.")
+
+if __name__ == "__main__":
+    send_test_invoice_email()
+    print("Sent with attachment.")
