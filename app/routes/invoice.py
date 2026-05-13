@@ -62,51 +62,84 @@ def get_invoice_pdf(invoice_id):
 
 @invoice_bp.route("/upload-invoice", methods=["GET", "POST"])
 def upload_invoice():
-    session_user = session.get("username")
-    if not session_user:
-        return redirect(url_for("auth.home"))
+
+    DEFAULT_TEAM_MEMBER = "tom.ap"
+
+    # Use logged-in user if available, otherwise fallback
+    # to the default AP team account for email ingestion
+    session_user = session.get("username", DEFAULT_TEAM_MEMBER)
 
     if request.method == "GET":
         return redirect(f"/ap/{session_user}")
 
     files = request.files.getlist("invoice_pdf")
+
     if not files or all(f.filename == "" for f in files):
         return redirect(f"/ap/{session_user}")
 
     project_root = current_app.config["PROJECT_ROOT"]
+
     upload_dir = os.path.join(project_root, "data", "uploads")
     os.makedirs(upload_dir, exist_ok=True)
 
     for file in files:
+
         if not file or file.filename == "":
             continue
+
         if not file.filename.lower().endswith(".pdf"):
             continue
 
         filename = secure_filename(file.filename)
+
         pdf_path = os.path.join(upload_dir, filename)
+
         file.save(pdf_path)
 
         try:
             pdf_json = extract_invoice_pdf(pdf_path)
 
             if _is_text_based_pdf(pdf_json):
-                results = extract_invoices_json(pdf_json, source_name=filename)
+                results = extract_invoices_json(
+                    pdf_json,
+                    source_name=filename
+                )
             else:
                 results = [VisionExtractor().extract(pdf_path)]
 
             for result in results:
+
                 invoice_id = result.get("_invoice_id")
-                if invoice_id:
-                    dest = os.path.join(project_root, "data", f"sample_{invoice_id}.pdf")
-                    shutil.copy(pdf_path, dest)
-                    invoice = Invoice.query.get(invoice_id)
-                    if invoice:
-                        invoice.uploaded_by = session_user
-                        db.session.commit()
+
+                if not invoice_id:
+                    continue
+
+                dest = os.path.join(
+                    project_root,
+                    "data",
+                    f"sample_{invoice_id}.pdf"
+                )
+
+                shutil.copy(pdf_path, dest)
+
+                invoice = Invoice.query.get(invoice_id)
+
+                if invoice:
+                    # Always assign to a valid user/team
+                    invoice.uploaded_by = session_user or DEFAULT_TEAM_MEMBER
+
+                    db.session.commit()
+
         except Exception as e:
-            current_app.logger.error(f"Invoice extraction failed for {filename}: {e}")
-            flash(f"Could not process '{filename}': {e}", "error")
+
+            current_app.logger.error(
+                f"Invoice extraction failed for {filename}: {e}"
+            )
+
+            flash(
+                f"Could not process '{filename}': {e}",
+                "error"
+            )
 
     return redirect(f"/ap/{session_user}")
 

@@ -48,4 +48,7 @@ def create_app(config_class=Config):
     app.register_blueprint(model_trainer_bp)
     app.register_blueprint(invoice_bp)
 
+    from email_pipeline.email_poller import start_email_poller
+    start_email_poller(app)
+
     return app
